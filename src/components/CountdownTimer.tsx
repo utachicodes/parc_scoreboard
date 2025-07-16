@@ -1,0 +1,87 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+
+interface CountdownTimerProps {
+  onComplete: () => void;
+  isAnimating: boolean;
+  round: number;
+}
+
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onComplete, isAnimating, round }) => {
+  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    if (isAnimating) {
+      setTimeout(() => {
+        setIsActive(true);
+      }, 1000);
+    }
+  }, [isAnimating]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (isActive && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(timeLeft => {
+          if (timeLeft <= 1) {
+            setIsActive(false);
+            onComplete();
+            return 0;
+          }
+          return timeLeft - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isActive, timeLeft, onComplete]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const getTimeColor = () => {
+    if (timeLeft <= 60) return 'text-red-500';
+    if (timeLeft <= 300) return 'text-orange-500';
+    return 'text-gray-900';
+  };
+
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      {/* Clean background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-gray-50/10 to-white" />
+      
+      <div className="text-center relative z-10">
+        {/* Clean timer display */}
+        <div className={`text-[8rem] font-thin font-mono tracking-tight transition-colors duration-500 ${getTimeColor()}`}>
+          {formatTime(timeLeft)}
+        </div>
+        
+        {/* Minimal subtitle */}
+        <div className="mt-6 text-xl text-gray-500 font-light">
+          Round {round}
+        </div>
+        
+        {/* Clean progress bar */}
+        <div className="mt-12 w-80 h-0.5 bg-gray-200 rounded-full mx-auto overflow-hidden">
+          <div 
+            className="h-full bg-gray-900 rounded-full transition-all duration-1000 ease-linear"
+            style={{ width: `${((15 * 60 - timeLeft) / (15 * 60)) * 100}%` }}
+          />
+        </div>
+        
+        {/* Minimal time remaining */}
+        <div className="mt-4 text-sm text-gray-400 font-light">
+          {Math.ceil(timeLeft / 60)} minutes remaining
+        </div>
+      </div>
+    </div>
+  );
+};

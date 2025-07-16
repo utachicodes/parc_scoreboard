@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+  20%, 40%, 60%, 80% { transform: translateX(10px); }
+}
+
+@keyframes fade-in {
+  from { 
+    opacity: 0; 
+    transform: translateY(30px) scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+
+@keyframes slide-up {
+  from { 
+    opacity: 0; 
+    transform: translateY(60px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+@keyframes slide-in {
+  from { 
+    opacity: 0; 
+    transform: translateX(-60px) scale(0.95); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0) scale(1); 
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+.animate-rumble {
+  animation: rumble 1.2s infinite alternate;
+}
+@keyframes rumble {
+  0% { transform: translate(0, 0) rotate(-1deg); }
+  20% { transform: translate(-2px, 1px) rotate(1deg); }
+  40% { transform: translate(2px, -1px) rotate(-2deg); }
+  60% { transform: translate(-1px, 2px) rotate(2deg); }
+  80% { transform: translate(1px, -2px) rotate(-1deg); }
+  100% { transform: translate(0, 0) rotate(1deg); }
+}
+
+.animate-glow {
+  animation: glow 2.5s ease-in-out infinite alternate;
+}
+@keyframes glow {
+  0% { text-shadow: 0 0 32px #ff8800, 0 0 8px #fff; }
+  100% { text-shadow: 0 0 64px #ff8800, 0 0 16px #fff; }
+}
+
+.animate-explode {
+  animation: explode 1.2s cubic-bezier(0.4,0,0.2,1) 1 both;
+}
+@keyframes explode {
+  0% { transform: scale(1); opacity: 1; }
+  80% { transform: scale(1.2) rotate(-8deg); opacity: 1; }
+  100% { transform: scale(2.5) rotate(8deg); opacity: 0; }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
