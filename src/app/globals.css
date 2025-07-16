@@ -99,6 +99,41 @@
   100% { transform: scale(2.5) rotate(8deg); opacity: 0; }
 }
 
+/* Winner animations */
+@keyframes winnerGlow {
+  0% { 
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    transform: scale(1.05);
+  }
+  100% { 
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 60px rgba(255, 215, 0, 0.4);
+    transform: scale(1.08);
+  }
+}
+
+@keyframes flyIn {
+  0% { 
+    opacity: 0;
+    transform: translateY(-100px) scale(0.8) rotate(-5deg);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: translateY(-20px) scale(1.1) rotate(2deg);
+  }
+  100% { 
+    opacity: 1;
+    transform: translateY(0) scale(1.05) rotate(0deg);
+  }
+}
+
+.animate-winner-glow {
+  animation: winnerGlow 2s ease-in-out infinite alternate;
+}
+
+.animate-fly-in {
+  animation: flyIn 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
