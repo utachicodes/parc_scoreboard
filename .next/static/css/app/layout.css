@@ -799,9 +799,6 @@ video {
 .max-w-5xl {
   max-width: 64rem;
 }
-.max-w-7xl {
-  max-width: 80rem;
-}
 .max-w-md {
   max-width: 28rem;
 }
@@ -2218,10 +2215,6 @@ video {
     width: 25%;
   }
 
-  .md\:w-auto {
-    width: auto;
-  }
-
   .md\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -2292,10 +2285,6 @@ video {
 
   .lg\:mb-0 {
     margin-bottom: 0px;
-  }
-
-  .lg\:grid-cols-4 {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .lg\:grid-cols-5 {
