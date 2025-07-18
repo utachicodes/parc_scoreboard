@@ -1615,9 +1615,6 @@ video {
 .text-\[10rem\] {
   font-size: 10rem;
 }
-.text-\[5rem\] {
-  font-size: 5rem;
-}
 .text-\[8rem\] {
   font-size: 8rem;
 }
@@ -2304,10 +2301,6 @@ video {
   .md\:text-6xl {
     font-size: 3.75rem;
     line-height: 1;
-  }
-
-  .md\:text-\[8rem\] {
-    font-size: 8rem;
   }
 
   .md\:text-xl {

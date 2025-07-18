@@ -33,7 +33,6 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onComplete, isAn
         setTimeLeft(timeLeft => {
           if (timeLeft <= 1) {
             setIsActive(false);
-            onComplete();
             return 0;
           }
           return timeLeft - 1;
@@ -44,7 +43,14 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onComplete, isAn
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, timeLeft, onComplete]);
+  }, [isActive, timeLeft]);
+
+  // Call onComplete only when timeLeft reaches 0
+  useEffect(() => {
+    if (timeLeft === 0) {
+      onComplete();
+    }
+  }, [timeLeft, onComplete]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -53,6 +59,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onComplete, isAn
   };
 
   const getTimeColor = () => {
+    if (timeLeft <= 5) return 'text-orange-500'; // Orange for last 5 seconds
     if (timeLeft <= 60) return 'text-red-500';
     if (timeLeft <= 300) return 'text-orange-500';
     return 'text-gray-900';
@@ -65,7 +72,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onComplete, isAn
       
       <div className="text-center relative z-10">
         {/* Clean timer display */}
-        <div className={`text-[8rem] font-thin font-mono tracking-tight transition-colors duration-500 ${getTimeColor()}`}>
+        <div className={`text-[8rem] font-thin font-mono tracking-tight transition-colors duration-500 ${getTimeColor()}${timeLeft <= 5 ? ' animate-pulse' : ''}`}>
           {formatTime(timeLeft)}
         </div>
         
