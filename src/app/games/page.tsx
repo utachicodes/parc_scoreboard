@@ -78,12 +78,6 @@ function LeagueTimerFlow({ objectives, leagueName }: { objectives: Objective[]; 
         <audio ref={audioRef} src="/buzzer.mp3" preload="auto" />
         <h1 className="text-4xl font-bold text-green-600 mb-6">Competition Complete!</h1>
         <p className="text-xl mb-6">Well done! All objectives are finished. Judges may now tally scores and assess the field.</p>
-        <button
-          className="px-8 py-3 bg-orange-500 text-white text-xl font-bold rounded-lg shadow hover:bg-orange-600 transition"
-          onClick={() => { if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); } }}
-        >
-          Play Buzzer
-        </button>
       </div>
     );
   }
