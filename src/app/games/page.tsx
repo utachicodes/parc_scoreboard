@@ -77,25 +77,31 @@ function LeagueTimerFlow({ objectives, leagueName }: { objectives: Objective[]; 
       <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center">
         <audio ref={audioRef} src="/buzzer.mp3" preload="auto" />
         <h1 className="text-4xl font-bold text-green-600 mb-6">Competition Complete!</h1>
-        <p className="text-xl">Well done! All objectives are finished. Judges may now tally scores and assess the field.</p>
+        <p className="text-xl mb-6">Well done! All objectives are finished. Judges may now tally scores and assess the field.</p>
+        <button
+          className="px-8 py-3 bg-orange-500 text-white text-xl font-bold rounded-lg shadow hover:bg-orange-600 transition"
+          onClick={() => { if (audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); } }}
+        >
+          Play Buzzer
+        </button>
       </div>
     );
   }
   if (showSplash) {
     const obj = objectives[objIdx];
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-orange-50 text-center animate-fade-in">
-        <h2 className="text-4xl md:text-5xl font-extrabold text-orange-600 mb-6 drop-shadow-lg">{obj.name}</h2>
-        <p className="text-2xl md:text-3xl font-light text-gray-800 max-w-2xl mx-auto mb-8">{obj.description}</p>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-orange-50 text-center animate-fade-in p-0 m-0">
+        <h2 className="text-4xl md:text-5xl font-extrabold text-orange-600 mb-2 drop-shadow-lg whitespace-pre-line" style={{margin:0}}>{obj.name}</h2>
+        <p className="text-lg md:text-xl font-light text-gray-800 max-w-2xl mx-auto mb-2 whitespace-pre-line" style={{margin:0}}>{obj.description}</p>
       </div>
     );
   }
   // Timer phase
   const obj = objectives[objIdx];
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center">
-      <h2 className="text-3xl font-bold text-orange-600 mb-4">{obj.name}</h2>
-      <p className="text-lg mb-8 max-w-2xl mx-auto">{obj.description}</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center p-0 m-0">
+      <h2 className="text-3xl font-bold text-orange-600 mb-2 whitespace-pre-line" style={{margin:0}}>{obj.name}</h2>
+      <p className="text-lg mb-2 max-w-2xl mx-auto whitespace-pre-line" style={{margin:0}}>{obj.description}</p>
       <CountdownTimer
         onComplete={() => setPhase(phase + 1)}
         isAnimating={true}
@@ -159,27 +165,27 @@ export default function GamesTimerPage() {
         </div>
       )}
       {selectedLeague && selectedLeague.key === 'Stars' && !isExploded && (
-        <div className="w-full">
+        <div className="w-full p-0 m-0">
           <LeagueTimerFlow
             objectives={[
               {
                 name: "Objective 1: Setting Up Battery Structures",
-                duration: 90,
-                description: "Robots must transport and assemble battery trays and cases from storage to the assembly zone, avoiding AGVs. 3 points per tray, 1 per case, -2 per AGV collision."
+                duration: 90, // 1 min 30s
+                description: "Transport and assemble battery trays and cases from storage to the assembly zone. Avoid AGVs. 3 points per tray, 1 per case, -2 per AGV collision."
               },
               {
                 name: "Objective 2: Sorting and Transporting Defective Battery Cells",
-                duration: 60,
+                duration: 60, // 1 min
                 description: "Sort defective batteries into the correct recycling bin. Circles: 1pt, Triangles: 2pt, Squares: 3pt, wrong bin: -1pt, functional in bin: -2pt, red X recycled: -5pt."
               },
               {
-                name: "Objective 3: Series and Parallel Assembly",
-                duration: 120,
+                name: "Objective 3: Battery Assembly",
+                duration: 120, // 2 min
                 description: "Arrange functional battery cells in series (2pt each) or parallel (each new layer increases points per cell). Only cells stacked at the end count."
               },
               {
                 name: "Objective 4: Sealing Packs and Returning to Warehouse",
-                duration: 30,
+                duration: 30, // 30 sec
                 description: "Enclose battery structures with covers to form packs, return to starting area. 3pt per cover, 3pt per robot back in time, -2pt per AGV collision."
               }
             ]}
@@ -188,23 +194,23 @@ export default function GamesTimerPage() {
         </div>
       )}
       {selectedLeague && selectedLeague.key === 'Tech' && !isExploded && (
-        <div className="w-full">
+        <div className="w-full p-0 m-0">
           <LeagueTimerFlow
             objectives={[
               {
                 name: "Objective 1: Mining & Transport of Phosphate Rocks",
-                duration: 60,
-                description: "Extract and transport phosphate rocks (balls) to containers in the mixing zone. 2pt per rock, 5pt for large rock, -3pt for overfilling a container (max 3 rocks)."
+                duration: 60, // 1 min
+                description: "Extract and transport phosphate rocks to containers in the mixing zone. Max 3 per container. Large rock bonus. Over limit penalty."
               },
               {
                 name: "Objective 2: Chemical Processing & Fertilizer Formation",
-                duration: 60,
-                description: "Add 2 sulfuric acids (orange S discs) and ammonia (A discs) to each container. 2pt per acid/ammonia, +3pt for correct MAP, +4pt for correct DAP, -2pt for defective acid/ammonia."
+                duration: 60, // 1 min
+                description: "Add 2 sulfuric acids (S discs) and ammonia (A discs) to each container. Avoid defective discs. Produce MAP/DAP. Defective penalty."
               },
               {
                 name: "Objective 3: Transport & Ship Fertilizer",
-                duration: 30,
-                description: "Move containers to the correct shipping zone: MAP (yellow), DAP (red), Unfinished (orange). 5pt per correct delivery, -3pt for wrong area."
+                duration: 30, // 30 sec
+                description: "Move containers to correct shipping zone (MAP, DAP, Unfinished). Correct delivery bonus. Wrong area penalty."
               }
             ]}
             leagueName="TECH League"
