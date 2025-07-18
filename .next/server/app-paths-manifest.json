@@ -1,7 +1,4 @@
 {
-  "/admin/page": "app/admin/page.js",
-  "/tech/scoring/page": "app/tech/scoring/page.js",
-  "/page": "app/page.js",
-  "/public/page": "app/public/page.js",
-  "/games/page": "app/games/page.js"
+  "/games/page": "app/games/page.js",
+  "/page": "app/page.js"
 }

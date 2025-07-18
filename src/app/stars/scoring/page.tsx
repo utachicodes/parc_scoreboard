@@ -317,23 +317,48 @@ export default function StarsScoringPage() {
       {/* Match Summary Modal */}
       {showSummary && matchTeams.length === 2 && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full relative animate-pop">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full relative animate-pop">
             <button onClick={() => setShowSummary(false)} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-orange-500">&times;</button>
-            <h2 className="text-3xl font-bold text-center mb-6 text-orange-600">Match Summary</h2>
+            
+            {/* Round Header */}
+            <div className="text-center mb-6">
+              <h2 className="text-4xl font-bold text-orange-600 mb-2">Match Summary</h2>
+              <div className="text-2xl font-semibold text-gray-700 bg-orange-100 px-6 py-3 rounded-lg inline-block">
+                {matchTeams[0]?.round || 'Round'}
+              </div>
+            </div>
+            
             <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
               {matchTeams.map((team, idx) => {
                 const isWinner =
                   matchTeams.every(t => t.score !== 'Disqualified') &&
                   Number(team.score) === Math.max(...matchTeams.map(t => t.score === 'Disqualified' ? -9999 : Number(t.score)));
+                
                 return (
-                  <div key={team.id || idx} className={`flex-1 rounded-xl p-6 shadow-lg border-4 transition-all duration-500 ${isWinner ? 'border-yellow-400 bg-yellow-50 animate-glow-card' : 'border-gray-200 bg-gray-50'} ${team.score === 'Disqualified' ? 'bg-red-100 text-red-700 border-red-300' : ''}`}>
+                  <div 
+                    key={team.id || idx} 
+                    className={`flex-1 rounded-xl p-6 shadow-lg border-4 transition-all duration-1000 ${
+                      isWinner 
+                        ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-yellow-100 animate-winner-glow' 
+                        : 'border-gray-200 bg-gray-50'
+                    } ${team.score === 'Disqualified' ? 'bg-red-100 text-red-700 border-red-300' : ''}`}
+                    style={{
+                      animation: isWinner ? 'winnerGlow 2s ease-in-out infinite alternate, flyIn 1.5s ease-out' : '',
+                      transform: isWinner ? 'scale(1.05)' : 'scale(1)',
+                      boxShadow: isWinner ? '0 0 30px rgba(255, 215, 0, 0.6)' : ''
+                    }}
+                  >
                     <div className="text-2xl font-bold mb-2 flex items-center gap-2">
                       {team.team}
-                      {isWinner && team.score !== 'Disqualified' && <span className="ml-2 text-yellow-500 animate-bounce">🏆</span>}
+                      {isWinner && team.score !== 'Disqualified' && (
+                        <span className="ml-2 text-yellow-500 animate-bounce text-3xl">🏆</span>
+                      )}
                       {team.score === 'Disqualified' && <span className="ml-2 text-red-500 font-bold">DQ</span>}
                     </div>
-                    <div className="text-lg font-semibold mb-2">Score: <span className={team.score === 'Disqualified' ? 'text-red-600' : 'text-orange-600'}>{team.score}</span></div>
-                    <div className="mb-2 text-sm text-gray-500">Round: {team.round} &bull; {team.submitted_by}</div>
+                    <div className="text-lg font-semibold mb-2">
+                      Score: <span className={team.score === 'Disqualified' ? 'text-red-600' : 'text-orange-600'}>{team.score}</span>
+                    </div>
+                    <div className="mb-2 text-sm text-gray-500">Submitted by: {team.submitted_by}</div>
                     <div className="mt-2 text-sm">
                       <div className="font-bold text-orange-500 mb-1">Objective 1</div>
                       <div>Trays: {team.trays} | Cases: {team.cases} | AGV Collisions: {team.agvCollisions1}</div>
@@ -351,6 +376,22 @@ export default function StarsScoringPage() {
                 );
               })}
             </div>
+            
+            {/* Winner Announcement */}
+            {matchTeams.some(team => 
+              matchTeams.every(t => t.score !== 'Disqualified') &&
+              Number(team.score) === Math.max(...matchTeams.map(t => t.score === 'Disqualified' ? -9999 : Number(t.score)))
+            ) && (
+              <div className="text-center mt-6 p-4 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-lg border-2 border-yellow-300">
+                <div className="text-2xl font-bold text-yellow-700 animate-pulse">
+                  🎉 Winner: {matchTeams.find(team => 
+                    matchTeams.every(t => t.score !== 'Disqualified') &&
+                    Number(team.score) === Math.max(...matchTeams.map(t => t.score === 'Disqualified' ? -9999 : Number(t.score)))
+                  )?.team} 🎉
+                </div>
+              </div>
+            )}
+            
             <div className="text-center mt-6">
               <button onClick={() => setShowSummary(false)} className="px-8 py-3 bg-orange-500 text-white text-xl font-bold rounded-lg shadow hover:bg-orange-600 transition">Close</button>
             </div>
