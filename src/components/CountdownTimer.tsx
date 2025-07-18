@@ -6,11 +6,16 @@ interface CountdownTimerProps {
   onComplete: () => void;
   isAnimating: boolean;
   round: number;
+  initialSeconds?: number; // Add this prop
 }
 
-export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onComplete, isAnimating, round }) => {
-  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes in seconds
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onComplete, isAnimating, round, initialSeconds = 15 * 60 }) => {
+  const [timeLeft, setTimeLeft] = useState(initialSeconds); // Use initialSeconds
   const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    setTimeLeft(initialSeconds); // Reset timer if initialSeconds changes
+  }, [initialSeconds]);
 
   useEffect(() => {
     if (isAnimating) {
@@ -64,22 +69,12 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onComplete, isAn
           {formatTime(timeLeft)}
         </div>
         
-        {/* Minimal subtitle */}
-        <div className="mt-6 text-xl text-gray-500 font-light">
-          Round {round}
-        </div>
-        
         {/* Clean progress bar */}
         <div className="mt-12 w-80 h-0.5 bg-gray-200 rounded-full mx-auto overflow-hidden">
           <div 
             className="h-full bg-gray-900 rounded-full transition-all duration-1000 ease-linear"
-            style={{ width: `${((15 * 60 - timeLeft) / (15 * 60)) * 100}%` }}
+            style={{ width: `${((initialSeconds - timeLeft) / initialSeconds) * 100}%` }}
           />
-        </div>
-        
-        {/* Minimal time remaining */}
-        <div className="mt-4 text-sm text-gray-400 font-light">
-          {Math.ceil(timeLeft / 60)} minutes remaining
         </div>
       </div>
     </div>

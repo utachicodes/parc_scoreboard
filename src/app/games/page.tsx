@@ -47,7 +47,7 @@ interface Objective {
   description: string;
 }
 
-function LeagueTimerFlow({ objectives, leagueName }: { objectives: Objective[]; leagueName: string }) {
+function LeagueTimerFlow({ objectives, leagueName, onBack }: { objectives: Objective[]; leagueName: string; onBack: () => void }) {
   const { phase, setPhase, showSplash, objIdx } = useSplash(objectives.length);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -69,6 +69,12 @@ function LeagueTimerFlow({ objectives, leagueName }: { objectives: Objective[]; 
         >
           Start Competition
         </button>
+        <button
+          className="mt-6 px-8 py-2 bg-white text-orange-600 border-2 border-orange-400 text-lg font-bold rounded-full hover:bg-orange-50 transition-all"
+          onClick={onBack}
+        >
+          Back to League Select
+        </button>
       </div>
     );
   }
@@ -76,15 +82,21 @@ function LeagueTimerFlow({ objectives, leagueName }: { objectives: Objective[]; 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center">
         <audio ref={audioRef} src="/buzzer.mp3" preload="auto" />
-        <h1 className="text-4xl font-bold text-green-600 mb-6">Competition Complete!</h1>
+        <h1 className="text-4xl font-bold text-orange-600 mb-6">Competition Complete!</h1>
         <p className="text-xl mb-6">Well done! All objectives are finished. Judges may now tally scores and assess the field.</p>
+        <button
+          className="mt-6 px-8 py-2 bg-white text-orange-600 border-2 border-orange-400 text-lg font-bold rounded-full hover:bg-orange-50 transition-all"
+          onClick={onBack}
+        >
+          Back to League Select
+        </button>
       </div>
     );
   }
   if (showSplash) {
     const obj = objectives[objIdx];
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-orange-50 text-center animate-fade-in p-0 m-0">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center animate-fade-in p-0 m-0">
         <h2 className="text-4xl md:text-5xl font-extrabold text-orange-600 mb-2 drop-shadow-lg whitespace-pre-line" style={{margin:0}}>{obj.name}</h2>
         <p className="text-lg md:text-xl font-light text-gray-800 max-w-2xl mx-auto mb-2 whitespace-pre-line" style={{margin:0}}>{obj.description}</p>
       </div>
@@ -100,7 +112,6 @@ function LeagueTimerFlow({ objectives, leagueName }: { objectives: Objective[]; 
         onComplete={() => setPhase(phase + 1)}
         isAnimating={true}
         round={objIdx + 1}
-        // @ts-ignore
         initialSeconds={obj.duration}
       />
     </div>
@@ -109,28 +120,10 @@ function LeagueTimerFlow({ objectives, leagueName }: { objectives: Objective[]; 
 
 export default function GamesTimerPage() {
   const [selectedLeague, setSelectedLeague] = useState<{ name: string; key: string; gradient: string; text: string } | null>(null);
-  const [timeLeft, setTimeLeft] = useState(90);
-  const [isExploded, setIsExploded] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    if (selectedLeague) {
-      setTimeLeft(getLeagueDuration(selectedLeague.key));
-    }
-  }, [selectedLeague]);
-
-  useEffect(() => {
-    if (selectedLeague && timeLeft > 0) {
-      const interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
-      return () => clearInterval(interval);
-    } else if (selectedLeague && timeLeft === 0) {
-      setTimeout(() => setIsExploded(true), 800); // short delay for effect
-    }
-  }, [selectedLeague, timeLeft]);
 
   const handleLeagueSelect = (league: typeof LEAGUES[number]) => {
     setSelectedLeague(league);
-    setIsExploded(false);
   };
 
   return (
@@ -158,7 +151,7 @@ export default function GamesTimerPage() {
           </div>
         </div>
       )}
-      {selectedLeague && selectedLeague.key === 'Stars' && !isExploded && (
+      {selectedLeague && selectedLeague.key === 'Stars' && (
         <div className="w-full p-0 m-0">
           <LeagueTimerFlow
             objectives={[
@@ -184,10 +177,11 @@ export default function GamesTimerPage() {
               }
             ]}
             leagueName="STARS League"
+            onBack={() => setSelectedLeague(null)}
           />
         </div>
       )}
-      {selectedLeague && selectedLeague.key === 'Tech' && !isExploded && (
+      {selectedLeague && selectedLeague.key === 'Tech' && (
         <div className="w-full p-0 m-0">
           <LeagueTimerFlow
             objectives={[
@@ -208,26 +202,8 @@ export default function GamesTimerPage() {
               }
             ]}
             leagueName="TECH League"
+            onBack={() => setSelectedLeague(null)}
           />
-        </div>
-      )}
-      {selectedLeague && isExploded && (
-        <div className="flex flex-col items-center">
-          <div className="text-[5rem] md:text-[8rem] font-extrabold text-orange-600 mb-6" style={{textShadow: 'none'}}>
-            Time is Up!
-          </div>
-          <button
-            onClick={() => { setSelectedLeague(null); setTimeLeft(90); setIsExploded(false); }}
-            className="px-8 py-4 bg-white text-orange-600 border-2 border-orange-400 text-2xl font-bold rounded-full hover:bg-orange-50 transition-all mt-8"
-          >
-            Back to League Select
-          </button>
-          <button
-            onClick={() => router.push('/')}
-            className="px-8 py-4 bg-white text-orange-600 border-2 border-orange-400 text-xl font-bold rounded-full hover:bg-orange-50 transition-all mt-4"
-          >
-            Back to Home
-          </button>
         </div>
       )}
     </div>
