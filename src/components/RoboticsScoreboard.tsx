@@ -10,8 +10,7 @@ export const RoboticsScoreboard: React.FC = () => {
     scores,
     loading,
     error,
-    fetchScores,
-    simulateRealTimeUpdate
+    fetchScores
   } = useRoboticsScoreboard();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -114,7 +113,6 @@ export const RoboticsScoreboard: React.FC = () => {
           scores={scores}
           loading={loading}
           onRefresh={fetchScores}
-          onSimulateUpdate={simulateRealTimeUpdate}
         />
 
         <CompetitionFilter
