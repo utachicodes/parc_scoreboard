@@ -236,14 +236,11 @@ export default function StarsScoringPage() {
             <option value="Finals">Finals</option>
           </select>
           <input name="submitted_by" value={form.submitted_by} onChange={handleChange} placeholder="Manager Name or Email" className="border p-2 rounded w-full md:w-1/4" required />
-          <label className="flex items-center gap-2 font-medium text-red-600">
-            <input type="checkbox" name="oversized" checked={form.oversized} onChange={handleChange} /> Oversized Robot (DQ)
-          </label>
-          <label className="flex items-center gap-2 font-medium text-red-600">
-            <input type="checkbox" name="sabotage" checked={form.sabotage} onChange={handleChange} /> Sabotage (DQ)
-          </label>
         </div>
-        <h2 className="text-xl font-semibold mb-2 mt-6 text-orange-500">Objective 1: Battery Structures</h2>
+
+        {/* Objective 1: Battery Structures */}
+        <h2 className="text-xl font-semibold mb-2 mt-6 text-orange-500">Objective 1: Setting Up Battery Structures <span className='text-sm text-gray-500'>(1 min 30s)</span></h2>
+        <div className="mb-2 text-gray-700">Transport and assemble battery trays and cases from storage to the assembly zone. Avoid AGVs. 3 points per tray, 1 per case, -2 per AGV collision.</div>
         <div className="flex gap-4 mb-2">
           <label className="flex flex-col">Trays (+3)
             <input type="number" name="trays" min={0} value={form.trays} onChange={handleChange} className="border p-1 rounded" />
@@ -255,7 +252,16 @@ export default function StarsScoringPage() {
             <input type="number" name="agvCollisions1" min={0} value={form.agvCollisions1} onChange={handleChange} className="border p-1 rounded" />
           </label>
         </div>
-        <h2 className="text-xl font-semibold mb-2 mt-6 text-orange-500">Objective 2: Sorting Defective Cells</h2>
+        <label className="flex items-center gap-2 font-medium text-red-600 mt-2">
+          <input type="checkbox" name="oversized" checked={form.oversized} onChange={handleChange} /> Oversized Robot (DQ)
+        </label>
+        <label className="flex items-center gap-2 font-medium text-red-600 mt-2">
+          <input type="checkbox" name="sabotage" checked={form.sabotage} onChange={handleChange} /> Sabotage (DQ)
+        </label>
+
+        {/* Objective 2: Sorting Defective Cells */}
+        <h2 className="text-xl font-semibold mb-2 mt-6 text-blue-500">Objective 2: Sorting and Transporting Defective Battery Cells <span className='text-sm text-gray-500'>(1 min)</span></h2>
+        <div className="mb-2 text-gray-700">Sort defective batteries into the correct recycling bin. Circles: 1pt, Triangles: 2pt, Squares: 3pt, wrong bin: -1pt, functional in bin: -2pt, red X recycled: -5pt.</div>
         <div className="flex gap-4 mb-2 flex-wrap">
           <label className="flex flex-col">Circle (+1)
             <input type="number" name="defectiveCircle" min={0} value={form.defectiveCircle} onChange={handleChange} className="border p-1 rounded" />
@@ -276,7 +282,10 @@ export default function StarsScoringPage() {
             <input type="checkbox" name="redXRecycled" checked={form.redXRecycled} onChange={handleChange} /> Red X Battery Recycled (−5)
           </label>
         </div>
-        <h2 className="text-xl font-semibold mb-2 mt-6 text-orange-500">Objective 3: Battery Assembly</h2>
+
+        {/* Objective 3: Battery Assembly */}
+        <h2 className="text-xl font-semibold mb-2 mt-6 text-purple-500">Objective 3: Battery Assembly <span className='text-sm text-gray-500'>(2 min)</span></h2>
+        <div className="mb-2 text-gray-700">Arrange functional battery cells in series (2pt each) or parallel (each new layer increases points per cell). Only cells stacked at the end count.</div>
         <div className="flex gap-4 mb-2 flex-wrap">
           <label className="flex flex-col">Series Cells (+2 each)
             <input type="number" name="seriesCells" min={0} value={form.seriesCells} onChange={handleChange} className="border p-1 rounded" />
@@ -291,7 +300,10 @@ export default function StarsScoringPage() {
             <input type="number" name="stackMore" min={0} value={form.stackMore} onChange={handleChange} className="border p-1 rounded" />
           </label>
         </div>
-        <h2 className="text-xl font-semibold mb-2 mt-6 text-orange-500">Objective 4: Sealing & Return</h2>
+
+        {/* Objective 4: Sealing & Return */}
+        <h2 className="text-xl font-semibold mb-2 mt-6 text-green-600">Objective 4: Sealing Packs and Returning to Warehouse <span className='text-sm text-gray-500'>(30 sec)</span></h2>
+        <div className="mb-2 text-gray-700">Enclose battery structures with covers to form packs, return to starting area. 3pt per cover, 3pt per robot back in time, -2pt per AGV collision.</div>
         <div className="flex gap-4 mb-2 flex-wrap">
           <label className="flex flex-col">Covers (+3 each)
             <input type="number" name="covers" min={0} value={form.covers} onChange={handleChange} className="border p-1 rounded" />
@@ -303,7 +315,9 @@ export default function StarsScoringPage() {
             <input type="number" name="agvCollisions4" min={0} value={form.agvCollisions4} onChange={handleChange} className="border p-1 rounded" />
           </label>
         </div>
-        <h2 className="text-xl font-semibold mb-2 mt-6 text-orange-500">Penalties</h2>
+
+        {/* Penalties */}
+        <h2 className="text-xl font-semibold mb-2 mt-6 text-red-500">Penalties</h2>
         <div className="flex gap-4 mb-2 flex-wrap">
           <label className="flex items-center gap-2">
             <input type="checkbox" name="knockdown" checked={form.knockdown} onChange={handleChange} /> Knockdown Another Team (−5)

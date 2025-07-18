@@ -90,47 +90,96 @@ export const TeamScoreCard: React.FC<TeamScoreCardProps> = ({ entry, rank, isNew
       </div>
 
       {/* Objective Scores */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        {/* Objective 1: Mining */}
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
-          <h4 className="font-bold text-amber-800 mb-3">🏗️ Mining & Transport</h4>
-          <div className="space-y-2 text-sm text-amber-700">
-            <div>Phosphate Rocks: {entry.objective1.phosphateRocks} (+{entry.objective1.phosphateRocks * 2})</div>
-            <div>Large Rock: {entry.objective1.largePhosphateRock ? '✓ (+5)' : '✗ (0)'}</div>
-            {entry.objective1.overLimitPenalty > 0 && (
-              <div className="text-red-600">Over Limit: -{entry.objective1.overLimitPenalty * 3}</div>
-            )}
+      {entry.league === 'Tech' ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          {/* Objective 1: Mining */}
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
+            <h4 className="font-bold text-amber-800 mb-3">🏗️ Mining & Transport<br/><span className='text-xs font-normal'>(1 min)</span></h4>
+            <div className="space-y-2 text-sm text-amber-700">
+              <div>Phosphate Rocks: {entry.objective1.phosphateRocks} (+{entry.objective1.phosphateRocks * 2})</div>
+              <div>Large Rock: {entry.objective1.largePhosphateRock ? '✓ (+5)' : '✗ (0)'}</div>
+              {entry.objective1.overLimitPenalty > 0 && (
+                <div className="text-red-600">Over Limit: -{entry.objective1.overLimitPenalty * 3}</div>
+              )}
+            </div>
+            <div className="font-black text-amber-800 mt-4 text-lg">{entry.objective1.objective1Score} pts</div>
           </div>
-          <div className="font-black text-amber-800 mt-4 text-lg">{entry.objective1.objective1Score} pts</div>
-        </div>
 
-        {/* Objective 2: Chemical Processing */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-          <h4 className="font-bold text-blue-800 mb-3">⚗️ Chemical Processing</h4>
-          <div className="space-y-2 text-sm text-blue-700">
-            <div>Sulfuric Acid: {entry.objective2.sulfuricAcidsAdded} (+{entry.objective2.sulfuricAcidsAdded * 2})</div>
-            <div>Ammonia: {entry.objective2.ammoniaAdded} (+{entry.objective2.ammoniaAdded * 2})</div>
-            <div>MAP: {entry.objective2.mapProduced} (+{entry.objective2.mapProduced * 3})</div>
-            <div>DAP: {entry.objective2.dapProduced} (+{entry.objective2.dapProduced * 4})</div>
-            {entry.objective2.defectivePenalty > 0 && (
-              <div className="text-red-600">Defective: -{entry.objective2.defectivePenalty * 2}</div>
-            )}
+          {/* Objective 2: Chemical Processing */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+            <h4 className="font-bold text-blue-800 mb-3">⚗️ Chemical Processing<br/><span className='text-xs font-normal'>(1 min)</span></h4>
+            <div className="space-y-2 text-sm text-blue-700">
+              <div>Sulfuric Acid: {entry.objective2.sulfuricAcidsAdded} (+{entry.objective2.sulfuricAcidsAdded * 2})</div>
+              <div>Ammonia: {entry.objective2.ammoniaAdded} (+{entry.objective2.ammoniaAdded * 2})</div>
+              <div>MAP: {entry.objective2.mapProduced} (+{entry.objective2.mapProduced * 3})</div>
+              <div>DAP: {entry.objective2.dapProduced} (+{entry.objective2.dapProduced * 4})</div>
+              {entry.objective2.defectivePenalty > 0 && (
+                <div className="text-red-600">Defective: -{entry.objective2.defectivePenalty * 2}</div>
+              )}
+            </div>
+            <div className="font-black text-blue-800 mt-4 text-lg">{entry.objective2.objective2Score} pts</div>
           </div>
-          <div className="font-black text-blue-800 mt-4 text-lg">{entry.objective2.objective2Score} pts</div>
-        </div>
 
-        {/* Objective 3: Shipping */}
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-          <h4 className="font-bold text-green-800 mb-3">🚚 Transport & Ship</h4>
-          <div className="space-y-2 text-sm text-green-700">
-            <div>Correct Deliveries: {entry.objective3.correctDeliveries} (+{entry.objective3.correctDeliveries * 5})</div>
-            {entry.objective3.wrongPlacementPenalty > 0 && (
-              <div className="text-red-600">Wrong Placement: -{entry.objective3.wrongPlacementPenalty * 3}</div>
-            )}
+          {/* Objective 3: Shipping */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+            <h4 className="font-bold text-green-800 mb-3">🚚 Transport & Ship<br/><span className='text-xs font-normal'>(30 sec)</span></h4>
+            <div className="space-y-2 text-sm text-green-700">
+              <div>Correct Deliveries: {entry.objective3.correctDeliveries} (+{entry.objective3.correctDeliveries * 5})</div>
+              {entry.objective3.wrongPlacementPenalty > 0 && (
+                <div className="text-red-600">Wrong Placement: -{entry.objective3.wrongPlacementPenalty * 3}</div>
+              )}
+            </div>
+            <div className="font-black text-green-800 mt-4 text-lg">{entry.objective3.objective3Score} pts</div>
           </div>
-          <div className="font-black text-green-800 mt-4 text-lg">{entry.objective3.objective3Score} pts</div>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          {/* Objective 1: Battery Structures */}
+          <div className="bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl p-6 border border-orange-200">
+            <h4 className="font-bold text-orange-800 mb-3">🔋 Battery Structures<br/><span className='text-xs font-normal'>(1 min 30s)</span></h4>
+            <div className="space-y-2 text-sm text-orange-700">
+              <div>Trays: {entry.objective1 && 'trays' in entry.objective1 ? String(entry.objective1.trays) : 'N/A'} (+3 each)</div>
+              <div>Cases: {entry.objective1 && 'cases' in entry.objective1 ? String(entry.objective1.cases) : 'N/A'} (+1 each)</div>
+              <div>AGV Collisions: {entry.objective1 && 'agvCollisions1' in entry.objective1 ? String(entry.objective1.agvCollisions1) : 'N/A'} (-2 each)</div>
+            </div>
+            <div className="font-black text-orange-800 mt-4 text-lg">{entry.objective1 && 'objective1Score' in entry.objective1 ? String(entry.objective1.objective1Score) : 'N/A'} pts</div>
+          </div>
+          {/* Objective 2: Sorting Defective Cells */}
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
+            <h4 className="font-bold text-blue-800 mb-3">🧪 Sorting Defective Cells<br/><span className='text-xs font-normal'>(1 min)</span></h4>
+            <div className="space-y-2 text-sm text-blue-700">
+              <div>Circle: {entry.objective2 && 'defectiveCircle' in entry.objective2 ? String(entry.objective2.defectiveCircle) : 'N/A'} (+1 each)</div>
+              <div>Triangle: {entry.objective2 && 'defectiveTriangle' in entry.objective2 ? String(entry.objective2.defectiveTriangle) : 'N/A'} (+2 each)</div>
+              <div>Square: {entry.objective2 && 'defectiveSquare' in entry.objective2 ? String(entry.objective2.defectiveSquare) : 'N/A'} (+3 each)</div>
+              <div>Wrong Bin: {entry.objective2 && 'wrongBin' in entry.objective2 ? String(entry.objective2.wrongBin) : 'N/A'} (-1 each)</div>
+              <div>Functional in Bin: {entry.objective2 && 'functionalInBin' in entry.objective2 ? String(entry.objective2.functionalInBin) : 'N/A'} (-2 each)</div>
+              <div>Red X Recycled: {entry.objective2 && 'redXRecycled' in entry.objective2 ? (entry.objective2.redXRecycled ? 'Yes (-5)' : 'No') : 'N/A'}</div>
+            </div>
+            <div className="font-black text-blue-800 mt-4 text-lg">{entry.objective2 && 'objective2Score' in entry.objective2 ? String(entry.objective2.objective2Score) : 'N/A'} pts</div>
+          </div>
+          {/* Objective 3: Battery Assembly */}
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+            <h4 className="font-bold text-purple-800 mb-3">🔗 Battery Assembly<br/><span className='text-xs font-normal'>(2 min)</span></h4>
+            <div className="space-y-2 text-sm text-purple-700">
+              <div>Series Cells: {entry.objective3 && 'seriesCells' in entry.objective3 ? String(entry.objective3.seriesCells) : 'N/A'} (+2 each)</div>
+              <div>Stack 2nd Layer: {entry.objective3 && 'stack2' in entry.objective3 ? String(entry.objective3.stack2) : 'N/A'} (+3 each)</div>
+              <div>Stack 3rd Layer: {entry.objective3 && 'stack3' in entry.objective3 ? String(entry.objective3.stack3) : 'N/A'} (+4 each)</div>
+              <div>Stack More: {entry.objective3 && 'stackMore' in entry.objective3 ? String(entry.objective3.stackMore) : 'N/A'} (+5 each)</div>
+            </div>
+            <div className="font-black text-purple-800 mt-4 text-lg">{entry.objective3 && 'objective3Score' in entry.objective3 ? String(entry.objective3.objective3Score) : 'N/A'} pts</div>
+          </div>
+          {/* Objective 4: Sealing & Return */}
+          <div className="bg-gradient-to-br from-green-50 to-lime-50 rounded-xl p-6 border border-green-200">
+            <h4 className="font-bold text-green-800 mb-3">🛡️ Sealing & Return<br/><span className='text-xs font-normal'>(30 sec)</span></h4>
+            <div className="space-y-2 text-sm text-green-700">
+              <div>Covers: {entry.objective4 && 'covers' in entry.objective4 ? String(entry.objective4.covers) : 'N/A'} (+3 each)</div>
+              <div>Robot Returned: {entry.objective4 && 'robotReturned' in entry.objective4 ? (entry.objective4.robotReturned ? 'Yes (+3)' : 'No') : 'N/A'}</div>
+              <div>AGV Collisions: {entry.objective4 && 'agvCollisions4' in entry.objective4 ? String(entry.objective4.agvCollisions4) : 'N/A'} (-2 each)</div>
+            </div>
+            <div className="font-black text-green-800 mt-4 text-lg">{entry.objective4 && 'objective4Score' in entry.objective4 ? String(entry.objective4.objective4Score) : 'N/A'} pts</div>
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <div className="flex items-center justify-between pt-6 border-t border-gray-200">

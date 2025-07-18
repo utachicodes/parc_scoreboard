@@ -76,12 +76,8 @@ function calculateScore(form: TechScoreForm): number | string {
 
 export default function TechScoringPage() {
   const [form, setForm] = useState<TechScoreForm>(initialForm);
-  const [stage, setStage] = useState(0); // 0: Obj1, 1: Obj2, 2: Obj3, 3: Review
-  const [timer, setTimer] = useState(DURATIONS[0]);
-  const [running, setRunning] = useState(false);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout>();
   const score = calculateScore(form);
   const [filterRound, setFilterRound] = useState<string>("");
   const [filterSubmitter, setFilterSubmitter] = useState<string>("");
@@ -126,32 +122,6 @@ export default function TechScoringPage() {
     };
   }, []);
 
-  // Timer logic
-  useEffect(() => {
-    if (!running) return;
-    if (timer === 0) {
-      setRunning(false);
-      return;
-    }
-    timerRef.current = setTimeout(() => setTimer(t => t - 1), 1000);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, [timer, running]);
-
-  function startStage() {
-    setRunning(true);
-    setTimer(DURATIONS[stage]);
-  }
-  function nextStage() {
-    setRunning(false);
-    setStage(s => s + 1);
-    if (stage < 2) setTimer(DURATIONS[stage + 1]);
-  }
-  function resetAll() {
-    setForm(initialForm);
-    setStage(0);
-    setTimer(DURATIONS[0]);
-    setRunning(false);
-  }
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value, type, dataset } = e.target;
     if (name.startsWith("phosphateRocks") || name.startsWith("overLimit") || name.startsWith("sulfuricAcid") || name.startsWith("ammonia") || name.startsWith("defectiveAcid") || name.startsWith("defectiveAmmonia")) {
@@ -163,6 +133,7 @@ export default function TechScoringPage() {
       setForm(f => ({ ...f, [name]: value }));
     }
   }
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     await fetch("/api/tech-scores", {
@@ -178,7 +149,7 @@ export default function TechScoringPage() {
       .slice(0, 2);
     setMatchTeams(recent);
     setShowSummary(true);
-    resetAll();
+    setForm(initialForm);
   }
 
   // Unique rounds and submitters for filter dropdowns
@@ -257,79 +228,63 @@ export default function TechScoringPage() {
           </select>
           <input name="submitted_by" value={form.submitted_by} onChange={handleChange} placeholder="Manager Name or Email" className="border p-2 rounded w-full md:w-1/4" required />
         </div>
-        {/* Timer and Stage */}
-        {stage < 3 && (
-          <div className="flex flex-col items-center mb-6">
-            <div className="text-2xl font-bold text-orange-500 mb-2">{["Objective 1: Mining & Transport", "Objective 2: Chemical Processing", "Objective 3: Shipping"][stage]}</div>
-            <div className="text-5xl font-mono text-orange-600 mb-2">{Math.floor(timer/60).toString().padStart(2, "0")}:{(timer%60).toString().padStart(2, "0")}</div>
-            {!running && timer === DURATIONS[stage] && <button type="button" className="px-6 py-2 bg-orange-500 text-white rounded font-bold" onClick={startStage}>Start Timer</button>}
-            {running && <div className="text-lg text-gray-500 animate-pulse">Time Running...</div>}
-            {!running && timer === 0 && stage < 2 && <button type="button" className="px-6 py-2 bg-orange-500 text-white rounded font-bold mt-2" onClick={nextStage}>Next Objective</button>}
-            {!running && timer === 0 && stage === 2 && <button type="button" className="px-6 py-2 bg-orange-500 text-white rounded font-bold mt-2" onClick={nextStage}>Review & Submit</button>}
+
+        {/* Objective 1: Mining & Transport */}
+        <h2 className="text-xl font-semibold mb-2 mt-6 text-orange-500">Objective 1: Mining & Transport of Phosphate Rocks <span className='text-sm text-gray-500'>(1 min)</span></h2>
+        <div className="mb-2 text-gray-700">Extract and transport phosphate rocks to containers in the mixing zone. Max 3 per container. Large rock bonus. Over limit penalty.</div>
+        <label className="flex items-center gap-2 font-medium text-red-600 mb-4">
+          <input type="checkbox" name="robotOversize" checked={form.robotOversize} onChange={handleChange} /> Robot Oversized (DQ)
+        </label>
+        <div className="mb-2 font-semibold">Phosphate Rocks in Containers (max 3 per):</div>
+        {[0,1,2,3].map(i => (
+          <div key={i} className="flex gap-2 items-center mb-2">
+            <span>Container {i+1}:</span>
+            <input type="number" name="phosphateRocks" data-idx={i} min={0} max={10} value={form.phosphateRocks[i]} onChange={handleChange} className="border p-1 rounded w-16" />
+            <span>Over Limit:</span>
+            <input type="number" name="overLimit" data-idx={i} min={0} max={10} value={form.overLimit[i]} onChange={handleChange} className="border p-1 rounded w-16" />
           </div>
-        )}
-        {/* Form Stages */}
-        {stage === 0 && (
-          <div>
-            <label className="flex items-center gap-2 font-medium text-red-600 mb-4">
-              <input type="checkbox" name="robotOversize" checked={form.robotOversize} onChange={handleChange} /> Robot Oversized (DQ)
-            </label>
-            <div className="mb-2 font-semibold">Phosphate Rocks in Containers (max 3 per):</div>
-            {[0,1,2,3].map(i => (
-              <div key={i} className="flex gap-2 items-center mb-2">
-                <span>Container {i+1}:</span>
-                <input type="number" name="phosphateRocks" data-idx={i} min={0} max={10} value={form.phosphateRocks[i]} onChange={handleChange} className="border p-1 rounded w-16" />
-                <span>Over Limit:</span>
-                <input type="number" name="overLimit" data-idx={i} min={0} max={10} value={form.overLimit[i]} onChange={handleChange} className="border p-1 rounded w-16" />
-              </div>
-            ))}
-            <label className="flex items-center gap-2 mt-2">
-              <input type="checkbox" name="largePhosphateRock" checked={form.largePhosphateRock} onChange={handleChange} /> Large Phosphate Rock Placed (+5)
-            </label>
+        ))}
+        <label className="flex items-center gap-2 mt-2">
+          <input type="checkbox" name="largePhosphateRock" checked={form.largePhosphateRock} onChange={handleChange} /> Large Phosphate Rock Placed (+5)
+        </label>
+
+        {/* Objective 2: Chemical Processing & Fertilizer Formation */}
+        <h2 className="text-xl font-semibold mb-2 mt-6 text-blue-500">Objective 2: Chemical Processing & Fertilizer Formation <span className='text-sm text-gray-500'>(1 min)</span></h2>
+        <div className="mb-2 text-gray-700">Add 2 sulfuric acids (S discs) and ammonia (A discs) to each container. Avoid defective discs. Produce MAP/DAP. Defective penalty.</div>
+        <div className="mb-2 font-semibold">Sulfuric Acid, Ammonia, Defective Discs per Container:</div>
+        {[0,1,2,3].map(i => (
+          <div key={i} className="flex gap-2 items-center mb-2">
+            <span>Container {i+1}:</span>
+            <input type="number" name="sulfuricAcid" data-idx={i} min={0} max={10} value={form.sulfuricAcid[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="S" />
+            <input type="number" name="ammonia" data-idx={i} min={0} max={10} value={form.ammonia[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="A" />
+            <input type="number" name="defectiveAcid" data-idx={i} min={0} max={10} value={form.defectiveAcid[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="Def S" />
+            <input type="number" name="defectiveAmmonia" data-idx={i} min={0} max={10} value={form.defectiveAmmonia[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="Def A" />
           </div>
-        )}
-        {stage === 1 && (
-          <div>
-            <div className="mb-2 font-semibold">Sulfuric Acid, Ammonia, Defective Discs per Container:</div>
-            {[0,1,2,3].map(i => (
-              <div key={i} className="flex gap-2 items-center mb-2">
-                <span>Container {i+1}:</span>
-                <input type="number" name="sulfuricAcid" data-idx={i} min={0} max={10} value={form.sulfuricAcid[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="S" />
-                <input type="number" name="ammonia" data-idx={i} min={0} max={10} value={form.ammonia[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="A" />
-                <input type="number" name="defectiveAcid" data-idx={i} min={0} max={10} value={form.defectiveAcid[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="Def S" />
-                <input type="number" name="defectiveAmmonia" data-idx={i} min={0} max={10} value={form.defectiveAmmonia[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="Def A" />
-              </div>
-            ))}
-            <div className="flex gap-4 mt-4">
-              <label className="flex flex-col">MAP Produced (+3 each)
-                <input type="number" name="mapProduced" min={0} value={form.mapProduced} onChange={handleChange} className="border p-1 rounded" />
-              </label>
-              <label className="flex flex-col">DAP Produced (+4 each)
-                <input type="number" name="dapProduced" min={0} value={form.dapProduced} onChange={handleChange} className="border p-1 rounded" />
-              </label>
-            </div>
-          </div>
-        )}
-        {stage === 2 && (
-          <div>
-            <div className="mb-2 font-semibold">Shipping:</div>
-            <label className="flex flex-col mb-2">Correct Deliveries (+5 each)
-              <input type="number" name="correctDeliveries" min={0} value={form.correctDeliveries} onChange={handleChange} className="border p-1 rounded" />
-            </label>
-            <label className="flex flex-col mb-2">Wrong Deliveries (−3 each)
-              <input type="number" name="wrongDeliveries" min={0} value={form.wrongDeliveries} onChange={handleChange} className="border p-1 rounded" />
-            </label>
-          </div>
-        )}
-        {stage === 3 && (
-          <div className="mb-6">
-            <div className="text-xl font-bold mb-2">Review & Submit</div>
-            <div className="mb-2">Team: <span className="font-semibold">{form.team}</span></div>
-            <div className="mb-2">Score: <span className={score === "Disqualified" ? "text-red-600" : "font-bold"}>{score}</span></div>
-            <button type="submit" className="px-8 py-3 bg-orange-500 text-white text-xl font-bold rounded-lg shadow hover:bg-orange-600 transition">Add to Leaderboard</button>
-            <button type="button" className="ml-4 px-6 py-2 bg-gray-300 text-gray-700 rounded font-bold" onClick={resetAll}>Reset</button>
-          </div>
-        )}
+        ))}
+        <div className="flex gap-4 mt-4">
+          <label className="flex flex-col">MAP Produced (+3 each)
+            <input type="number" name="mapProduced" min={0} value={form.mapProduced} onChange={handleChange} className="border p-1 rounded" />
+          </label>
+          <label className="flex flex-col">DAP Produced (+4 each)
+            <input type="number" name="dapProduced" min={0} value={form.dapProduced} onChange={handleChange} className="border p-1 rounded" />
+          </label>
+        </div>
+
+        {/* Objective 3: Shipping */}
+        <h2 className="text-xl font-semibold mb-2 mt-6 text-green-600">Objective 3: Transport & Ship Fertilizer <span className='text-sm text-gray-500'>(30 sec)</span></h2>
+        <div className="mb-2 text-gray-700">Move containers to correct shipping zone (MAP, DAP, Unfinished). Correct delivery bonus. Wrong area penalty.</div>
+        <div className="mb-2 font-semibold">Shipping:</div>
+        <label className="flex flex-col mb-2">Correct Deliveries (+5 each)
+          <input type="number" name="correctDeliveries" min={0} value={form.correctDeliveries} onChange={handleChange} className="border p-1 rounded" />
+        </label>
+        <label className="flex flex-col mb-2">Wrong Deliveries (−3 each)
+          <input type="number" name="wrongDeliveries" min={0} value={form.wrongDeliveries} onChange={handleChange} className="border p-1 rounded" />
+        </label>
+
+        <div className="mt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="text-2xl font-bold text-orange-600">Total Score: <span className={score === "Disqualified" ? "text-red-600" : ""}>{score}</span></div>
+          <button type="submit" className="px-8 py-3 bg-orange-500 text-white text-xl font-bold rounded-lg shadow hover:bg-orange-600 transition">Add to Leaderboard</button>
+        </div>
       </form>
       {/* Match Summary Modal */}
       {showSummary && matchTeams.length === 2 && (

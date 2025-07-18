@@ -1,6 +1,7 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { CountdownTimer } from '@/components/CountdownTimer';
 
 const LEAGUES = [
   { name: 'Tech League', key: 'Tech', gradient: '', text: 'text-orange-600' },
@@ -18,6 +19,92 @@ function getLeagueDuration(leagueKey: string) {
     }
   } catch {}
   return 90;
+}
+
+// Helper for splash delay
+function useSplash(steps: number) {
+  const [phase, setPhase] = React.useState(0); // 0: intro, 1: splash, 2: timer, 3: splash, 4: timer, ...
+  const [showSplash, setShowSplash] = React.useState(true);
+  const objIdx = Math.floor((phase - 1) / 2);
+
+  React.useEffect(() => {
+    if (phase === 0) return;
+    if (phase % 2 === 1) {
+      setShowSplash(true);
+      const t = setTimeout(() => setShowSplash(false), 1500);
+      return () => clearTimeout(t);
+    } else {
+      setShowSplash(false);
+    }
+  }, [phase]);
+
+  return { phase, setPhase, showSplash, objIdx };
+}
+
+interface Objective {
+  name: string;
+  duration: number;
+  description: string;
+}
+
+function LeagueTimerFlow({ objectives, leagueName }: { objectives: Objective[]; leagueName: string }) {
+  const { phase, setPhase, showSplash, objIdx } = useSplash(objectives.length);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    if (phase === objectives.length * 2 + 1 && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    }
+  }, [phase, objectives.length]);
+
+  if (phase === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center">
+        <h1 className="text-4xl font-bold text-orange-600 mb-6">{leagueName} Timer</h1>
+        <p className="text-xl mb-8">This timer will guide you through all objectives of the competition. Click below to begin!</p>
+        <button
+          className="px-10 py-4 bg-orange-500 text-white text-2xl font-bold rounded-lg shadow hover:bg-orange-600 transition"
+          onClick={() => setPhase(1)}
+        >
+          Start Competition
+        </button>
+      </div>
+    );
+  }
+  if (phase === objectives.length * 2 + 1) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center">
+        <audio ref={audioRef} src="/buzzer.mp3" preload="auto" />
+        <h1 className="text-4xl font-bold text-green-600 mb-6">Competition Complete!</h1>
+        <p className="text-xl">Well done! All objectives are finished. Judges may now tally scores and assess the field.</p>
+      </div>
+    );
+  }
+  if (showSplash) {
+    const obj = objectives[objIdx];
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-orange-50 text-center animate-fade-in">
+        <h2 className="text-4xl md:text-5xl font-extrabold text-orange-600 mb-6 drop-shadow-lg">{obj.name}</h2>
+        <p className="text-2xl md:text-3xl font-light text-gray-800 max-w-2xl mx-auto mb-8">{obj.description}</p>
+      </div>
+    );
+  }
+  // Timer phase
+  const obj = objectives[objIdx];
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white text-center">
+      <h2 className="text-3xl font-bold text-orange-600 mb-4">{obj.name}</h2>
+      <p className="text-lg mb-8 max-w-2xl mx-auto">{obj.description}</p>
+      <CountdownTimer
+        onComplete={() => setPhase(phase + 1)}
+        isAnimating={true}
+        round={objIdx + 1}
+        // @ts-ignore
+        initialSeconds={obj.duration}
+      />
+    </div>
+  );
 }
 
 export default function GamesTimerPage() {
@@ -71,14 +158,58 @@ export default function GamesTimerPage() {
           </div>
         </div>
       )}
-      {selectedLeague && !isExploded && (
-        <>
-          <div className={`text-2xl md:text-3xl font-semibold mb-4 ${selectedLeague.text}`}>{selectedLeague.name}</div>
-          <div className={`text-[8rem] md:text-[12rem] font-extrabold text-orange-600 mb-8 transition-all duration-300 ${timeLeft <= 30 ? 'animate-shake' : ''}`}
-            style={{letterSpacing: '0.05em', textShadow: '0 0 32px #ff8800'}}>
-            {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
-          </div>
-        </>
+      {selectedLeague && selectedLeague.key === 'Stars' && !isExploded && (
+        <div className="w-full">
+          <LeagueTimerFlow
+            objectives={[
+              {
+                name: "Objective 1: Setting Up Battery Structures",
+                duration: 90,
+                description: "Robots must transport and assemble battery trays and cases from storage to the assembly zone, avoiding AGVs. 3 points per tray, 1 per case, -2 per AGV collision."
+              },
+              {
+                name: "Objective 2: Sorting and Transporting Defective Battery Cells",
+                duration: 60,
+                description: "Sort defective batteries into the correct recycling bin. Circles: 1pt, Triangles: 2pt, Squares: 3pt, wrong bin: -1pt, functional in bin: -2pt, red X recycled: -5pt."
+              },
+              {
+                name: "Objective 3: Series and Parallel Assembly",
+                duration: 120,
+                description: "Arrange functional battery cells in series (2pt each) or parallel (each new layer increases points per cell). Only cells stacked at the end count."
+              },
+              {
+                name: "Objective 4: Sealing Packs and Returning to Warehouse",
+                duration: 30,
+                description: "Enclose battery structures with covers to form packs, return to starting area. 3pt per cover, 3pt per robot back in time, -2pt per AGV collision."
+              }
+            ]}
+            leagueName="STARS League"
+          />
+        </div>
+      )}
+      {selectedLeague && selectedLeague.key === 'Tech' && !isExploded && (
+        <div className="w-full">
+          <LeagueTimerFlow
+            objectives={[
+              {
+                name: "Objective 1: Mining & Transport of Phosphate Rocks",
+                duration: 60,
+                description: "Extract and transport phosphate rocks (balls) to containers in the mixing zone. 2pt per rock, 5pt for large rock, -3pt for overfilling a container (max 3 rocks)."
+              },
+              {
+                name: "Objective 2: Chemical Processing & Fertilizer Formation",
+                duration: 60,
+                description: "Add 2 sulfuric acids (orange S discs) and ammonia (A discs) to each container. 2pt per acid/ammonia, +3pt for correct MAP, +4pt for correct DAP, -2pt for defective acid/ammonia."
+              },
+              {
+                name: "Objective 3: Transport & Ship Fertilizer",
+                duration: 30,
+                description: "Move containers to the correct shipping zone: MAP (yellow), DAP (red), Unfinished (orange). 5pt per correct delivery, -3pt for wrong area."
+              }
+            ]}
+            leagueName="TECH League"
+          />
+        </div>
       )}
       {selectedLeague && isExploded && (
         <div className="flex flex-col items-center">
