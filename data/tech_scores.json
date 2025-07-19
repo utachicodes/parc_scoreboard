@@ -1,0 +1,104 @@
+[
+  {
+    "team": "Gambua",
+    "round": "Round 1",
+    "submitted_by": "abdoullahaljersi@gmail.com",
+    "phosphateRocks": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "largePhosphateRock": false,
+    "overLimit": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "robotOversize": false,
+    "sulfuricAcid": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "ammonia": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "defectiveAcid": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "defectiveAmmonia": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "mapProduced": 0,
+    "dapProduced": 0,
+    "correctDeliveries": 0,
+    "wrongDeliveries": 0,
+    "score": 0,
+    "time": "2:03:07 AM",
+    "id": "1752890597939",
+    "createdAt": "2025-07-19T02:03:17.939Z"
+  },
+  {
+    "team": "Gambua",
+    "round": "Round 1",
+    "submitted_by": "abdoullahaljersi@gmail.com",
+    "phosphateRocks": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "largePhosphateRock": false,
+    "overLimit": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "robotOversize": false,
+    "sulfuricAcid": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "ammonia": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "defectiveAcid": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "defectiveAmmonia": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "mapProduced": 0,
+    "dapProduced": 0,
+    "correctDeliveries": 0,
+    "wrongDeliveries": 0,
+    "score": 0,
+    "time": "2:03:05 AM",
+    "id": "1752890597757",
+    "createdAt": "2025-07-19T02:03:17.758Z"
+  }
+]

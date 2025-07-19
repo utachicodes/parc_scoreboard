@@ -31,6 +31,7 @@ type LeaderboardEntry = StarsScoreForm & {
   id?: string;
   score: number | string;
   time: string;
+  createdAt: string;
 };
 
 const initialForm: StarsScoreForm = {
@@ -155,9 +156,16 @@ export default function StarsScoringPage() {
     });
     // Find the two most recent teams for this round
     const res = await fetch("/api/stars-scores");
-    const all = await res.json();
+    let all = await res.json();
+    if (!Array.isArray(all)) { // Defensive check for API response
+      if (Array.isArray(all.data)) {
+        all = all.data;
+      } else {
+        all = [];
+      }
+    }
     const recent = all.filter((entry: LeaderboardEntry) => entry.round === form.round)
-      .sort((a: LeaderboardEntry, b: LeaderboardEntry) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .sort((a: LeaderboardEntry, b: LeaderboardEntry) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 2);
     setMatchTeams(recent);
     setShowSummary(true);
@@ -329,9 +337,9 @@ export default function StarsScoringPage() {
         </div>
       </form>
       {/* Match Summary Modal */}
-      {showSummary && matchTeams.length === 2 && (
+      {showSummary && matchTeams.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full relative animate-pop">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-6xl w-full relative animate-pop">
             <button onClick={() => setShowSummary(false)} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-orange-500">&times;</button>
             
             {/* Round Header */}
@@ -342,7 +350,7 @@ export default function StarsScoringPage() {
               </div>
             </div>
             
-            <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start justify-center">
               {matchTeams.map((team, idx) => {
                 const isWinner =
                   matchTeams.every(t => t.score !== 'Disqualified') &&
@@ -351,7 +359,7 @@ export default function StarsScoringPage() {
                 return (
                   <div 
                     key={team.id || idx} 
-                    className={`flex-1 rounded-xl p-6 shadow-lg border-4 transition-all duration-1000 ${
+                    className={`rounded-xl p-6 shadow-lg border-4 transition-all duration-1000 ${
                       isWinner 
                         ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-yellow-100 animate-winner-glow' 
                         : 'border-gray-200 bg-gray-50'

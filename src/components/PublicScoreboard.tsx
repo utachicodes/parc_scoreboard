@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { supabase } from '@/services/supabaseClient';
 
 interface Score {
   id: string;
@@ -19,78 +18,52 @@ const LEAGUES = [
 export default function PublicScoreboard() {
   const [scores, setScores] = useState<Score[]>([]);
   const [selectedLeague, setSelectedLeague] = useState('Tech');
-  const [selectedRound, setSelectedRound] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    supabase
-      .from('tech_scores')
-      .select('*')
-      .then(({ data: tech }) => {
-        supabase
-          .from('stars_scores')
-          .select('*')
-          .then(({ data: stars }) => {
-            const all = [
-              ...(tech || []).map(s => ({ ...s, league: 'Tech' })),
-              ...(stars || []).map(s => ({ ...s, league: 'Stars' })),
-            ];
-            setScores(all);
-            setLoading(false);
-          });
-      });
-    // Real-time subscription
-    const techChannel = supabase
-      .channel('tech_scores_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tech_scores' }, () => {
-        supabase
-          .from('tech_scores')
-          .select('*')
-          .then(({ data: tech }) => {
-            setScores(prev => {
-              const stars = prev.filter(s => s.league === 'Stars');
-              return [
-                ...(tech || []).map(s => ({ ...s, league: 'Tech' })),
-                ...stars,
-              ];
-            });
-          });
-      })
-      .subscribe();
-    const starsChannel = supabase
-      .channel('stars_scores_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'stars_scores' }, () => {
-        supabase
-          .from('stars_scores')
-          .select('*')
-          .then(({ data: stars }) => {
-            setScores(prev => {
-              const tech = prev.filter(s => s.league === 'Tech');
-              return [
-                ...tech,
-                ...(stars || []).map(s => ({ ...s, league: 'Stars' })),
-              ];
-            });
-          });
-      })
-      .subscribe();
-    return () => {
-      supabase.removeChannel(techChannel);
-      supabase.removeChannel(starsChannel);
-    };
+    async function fetchScores() {
+      setLoading(true);
+      try {
+        const [techResponse, starsResponse] = await Promise.all([
+          fetch('/api/tech-scores'),
+          fetch('/api/stars-scores')
+        ]);
+        
+        const tech = await techResponse.json();
+        const stars = await starsResponse.json();
+        
+        const all = [
+          ...(tech || []).map((s: any) => ({ ...s, league: 'Tech' })),
+          ...(stars || []).map((s: any) => ({ ...s, league: 'Stars' })),
+        ];
+        setScores(all);
+      } catch (error) {
+        console.error('Error fetching scores:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchScores();
+    
+    // Refresh data every 5 seconds
+    const interval = setInterval(fetchScores, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Filtered and sorted
+  // Group scores by round, sort each group by score descending
   const leagueScores = scores.filter(s => s.league === selectedLeague);
-  const availableRounds = Array.from(new Set(leagueScores.map(s => s.round).filter(Boolean)));
-  const filtered = leagueScores
-    .filter(s => !selectedRound || s.round === selectedRound)
-    .sort((a, b) => {
-      const aScore = a.score === 'Disqualified' ? -9999 : Number(a.score);
-      const bScore = b.score === 'Disqualified' ? -9999 : Number(b.score);
-      return bScore - aScore;
-    });
+  const rounds = Array.from(new Set(leagueScores.map(s => s.round).filter(Boolean)));
+  const scoresByRound = rounds.map(round => {
+    const entries = leagueScores
+      .filter(s => s.round === round)
+      .sort((a, b) => {
+        const aScore = a.score === 'Disqualified' ? -9999 : Number(a.score);
+        const bScore = b.score === 'Disqualified' ? -9999 : Number(b.score);
+        return bScore - aScore;
+      });
+    return { round, entries };
+  });
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-start bg-slate-50 relative overflow-x-hidden">
@@ -113,49 +86,46 @@ export default function PublicScoreboard() {
           </button>
         ))}
       </div>
-      {/* Round Filter */}
-      {availableRounds.length > 1 && (
-        <div className="mb-6">
-          <select
-            value={selectedRound}
-            onChange={e => setSelectedRound(e.target.value)}
-            className="px-4 py-2 rounded border border-gray-300 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-400"
-          >
-            <option value="">All Rounds</option>
-            {availableRounds.map(round => (
-              <option key={round} value={round}>{round}</option>
-            ))}
-          </select>
-        </div>
-      )}
       {/* Scoreboard Table */}
-      <div className="w-full max-w-2xl bg-white rounded-xl border border-gray-200 p-6 mb-12">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="border-b border-gray-200">
-              <th className="py-2 px-2 text-gray-500 font-semibold">Rank</th>
-              <th className="py-2 px-2 text-gray-500 font-semibold">Team</th>
-              <th className="py-2 px-2 text-gray-500 font-semibold">Score</th>
-              <th className="py-2 px-2 text-gray-500 font-semibold">Round</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="text-center py-8 text-gray-400">No entries found</td>
-              </tr>
-            ) : (
-              filtered.map((entry, idx) => (
-                <tr key={entry.id} className={`border-b border-gray-100 ${idx === 0 ? 'bg-orange-50' : ''}`}>
-                  <td className={`py-2 px-2 font-bold ${idx === 0 ? 'text-orange-500' : 'text-gray-800'}`}>{idx + 1}</td>
-                  <td className="py-2 px-2 text-gray-900 font-medium">{entry.team}</td>
-                  <td className={`py-2 px-2 font-bold ${idx === 0 ? 'text-orange-500' : 'text-gray-900'}`}>{entry.score}</td>
-                  <td className="py-2 px-2 text-gray-700">{entry.round}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className="w-full max-w-4xl mx-auto space-y-12">
+        {scoresByRound.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">No entries found</div>
+        ) : (
+          scoresByRound.map(({ round, entries }) => (
+            <div key={round} className="bg-white rounded-2xl shadow-lg p-6 border-t-8 border-orange-400">
+              <h2 className="text-2xl font-bold text-orange-600 mb-4 flex items-center gap-3">
+                <span className="inline-block w-6 h-6 bg-orange-400 rounded-full"></span>
+                {round}
+              </h2>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th className="py-2 px-2 text-gray-500 font-semibold">Rank</th>
+                      <th className="py-2 px-2 text-gray-500 font-semibold">Team</th>
+                      <th className="py-2 px-2 text-gray-500 font-semibold">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entries.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="text-center py-8 text-gray-400">No teams in this round</td>
+                      </tr>
+                    ) : (
+                      entries.map((entry, idx) => (
+                        <tr key={entry.id} className={`border-b border-gray-100 ${idx === 0 ? 'bg-yellow-50' : ''}`}>
+                          <td className={`py-2 px-2 font-bold ${idx === 0 ? 'text-yellow-600' : 'text-gray-800'}`}>{idx === 0 ? '🏆' : idx + 1}</td>
+                          <td className="py-2 px-2 text-gray-900 font-medium">{entry.team}</td>
+                          <td className={`py-2 px-2 font-bold ${idx === 0 ? 'text-yellow-600' : 'text-gray-900'}`}>{entry.score}</td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

@@ -151,3 +151,46 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes winnerGlow {
+  0% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
+  100% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8); }
+}
+
+@keyframes flyIn {
+  0% { transform: translateY(-50px) scale(0.9); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes rumble {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-pop {
+  animation: pop 0.5s ease-out;
+}
+
+.animate-winner-glow {
+  animation: winnerGlow 2s ease-in-out infinite alternate;
+}
+
+.animate-rumble {
+  animation: rumble 0.5s ease-in-out infinite;
+}

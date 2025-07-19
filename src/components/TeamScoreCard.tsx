@@ -91,47 +91,47 @@ export const TeamScoreCard: React.FC<TeamScoreCardProps> = ({ entry, rank, isNew
 
       {/* Objective Scores */}
       {entry.league === 'Tech' ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {/* Objective 1: Mining */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* Objective 1: Mining */}
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-6 border border-amber-200">
             <h4 className="font-bold text-amber-800 mb-3">🏗️ Mining & Transport<br/><span className='text-xs font-normal'>(1 min)</span></h4>
-            <div className="space-y-2 text-sm text-amber-700">
-              <div>Phosphate Rocks: {entry.objective1.phosphateRocks} (+{entry.objective1.phosphateRocks * 2})</div>
-              <div>Large Rock: {entry.objective1.largePhosphateRock ? '✓ (+5)' : '✗ (0)'}</div>
-              {entry.objective1.overLimitPenalty > 0 && (
-                <div className="text-red-600">Over Limit: -{entry.objective1.overLimitPenalty * 3}</div>
-              )}
-            </div>
-            <div className="font-black text-amber-800 mt-4 text-lg">{entry.objective1.objective1Score} pts</div>
+          <div className="space-y-2 text-sm text-amber-700">
+            <div>Phosphate Rocks: {entry.objective1.phosphateRocks} (+{entry.objective1.phosphateRocks * 2})</div>
+            <div>Large Rock: {entry.objective1.largePhosphateRock ? '✓ (+5)' : '✗ (0)'}</div>
+            {entry.objective1.overLimitPenalty > 0 && (
+              <div className="text-red-600">Over Limit: -{entry.objective1.overLimitPenalty * 3}</div>
+            )}
           </div>
-
-          {/* Objective 2: Chemical Processing */}
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
-            <h4 className="font-bold text-blue-800 mb-3">⚗️ Chemical Processing<br/><span className='text-xs font-normal'>(1 min)</span></h4>
-            <div className="space-y-2 text-sm text-blue-700">
-              <div>Sulfuric Acid: {entry.objective2.sulfuricAcidsAdded} (+{entry.objective2.sulfuricAcidsAdded * 2})</div>
-              <div>Ammonia: {entry.objective2.ammoniaAdded} (+{entry.objective2.ammoniaAdded * 2})</div>
-              <div>MAP: {entry.objective2.mapProduced} (+{entry.objective2.mapProduced * 3})</div>
-              <div>DAP: {entry.objective2.dapProduced} (+{entry.objective2.dapProduced * 4})</div>
-              {entry.objective2.defectivePenalty > 0 && (
-                <div className="text-red-600">Defective: -{entry.objective2.defectivePenalty * 2}</div>
-              )}
-            </div>
-            <div className="font-black text-blue-800 mt-4 text-lg">{entry.objective2.objective2Score} pts</div>
-          </div>
-
-          {/* Objective 3: Shipping */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
-            <h4 className="font-bold text-green-800 mb-3">🚚 Transport & Ship<br/><span className='text-xs font-normal'>(30 sec)</span></h4>
-            <div className="space-y-2 text-sm text-green-700">
-              <div>Correct Deliveries: {entry.objective3.correctDeliveries} (+{entry.objective3.correctDeliveries * 5})</div>
-              {entry.objective3.wrongPlacementPenalty > 0 && (
-                <div className="text-red-600">Wrong Placement: -{entry.objective3.wrongPlacementPenalty * 3}</div>
-              )}
-            </div>
-            <div className="font-black text-green-800 mt-4 text-lg">{entry.objective3.objective3Score} pts</div>
-          </div>
+          <div className="font-black text-amber-800 mt-4 text-lg">{entry.objective1.objective1Score} pts</div>
         </div>
+
+        {/* Objective 2: Chemical Processing */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-200">
+            <h4 className="font-bold text-blue-800 mb-3">⚗️ Chemical Processing<br/><span className='text-xs font-normal'>(1 min)</span></h4>
+          <div className="space-y-2 text-sm text-blue-700">
+            <div>Sulfuric Acid: {entry.objective2.sulfuricAcidsAdded} (+{entry.objective2.sulfuricAcidsAdded * 2})</div>
+            <div>Ammonia: {entry.objective2.ammoniaAdded} (+{entry.objective2.ammoniaAdded * 2})</div>
+            <div>MAP: {entry.objective2.mapProduced} (+{entry.objective2.mapProduced * 3})</div>
+            <div>DAP: {entry.objective2.dapProduced} (+{entry.objective2.dapProduced * 4})</div>
+            {entry.objective2.defectivePenalty > 0 && (
+              <div className="text-red-600">Defective: -{entry.objective2.defectivePenalty * 2}</div>
+            )}
+          </div>
+          <div className="font-black text-blue-800 mt-4 text-lg">{entry.objective2.objective2Score} pts</div>
+        </div>
+
+        {/* Objective 3: Shipping */}
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
+            <h4 className="font-bold text-green-800 mb-3">🚚 Transport & Ship<br/><span className='text-xs font-normal'>(30 sec)</span></h4>
+          <div className="space-y-2 text-sm text-green-700">
+            <div>Correct Deliveries: {entry.objective3.correctDeliveries} (+{entry.objective3.correctDeliveries * 5})</div>
+            {entry.objective3.wrongPlacementPenalty > 0 && (
+              <div className="text-red-600">Wrong Placement: -{entry.objective3.wrongPlacementPenalty * 3}</div>
+            )}
+          </div>
+          <div className="font-black text-green-800 mt-4 text-lg">{entry.objective3.objective3Score} pts</div>
+        </div>
+      </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           {/* Objective 1: Battery Structures */}

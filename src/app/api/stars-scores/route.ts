@@ -1,44 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/services/supabaseClient';
-
-const TABLE = 'stars_scores';
+import { localStorage } from '@/services/localStorage';
 
 export async function GET() {
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select('*')
-    .order('createdAt', { ascending: false });
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+  try {
+    const data = await localStorage.getStarsScores();
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    return NextResponse.json({ 
+      error: err instanceof Error ? err.message : 'Unknown error',
+      details: 'GET /api/stars-scores failed'
+    }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const body = await req.json();
-  const { data, error } = await supabase
-    .from(TABLE)
-    .insert([{ ...body, createdAt: new Date().toISOString() }])
-    .select();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data[0]);
+  try {
+    const body = await req.json();
+    const data = await localStorage.addStarsScore(body);
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    return NextResponse.json({ 
+      error: err instanceof Error ? err.message : 'Unknown error',
+      details: 'POST /api/stars-scores failed'
+    }, { status: 500 });
+  }
 }
 
 export async function PATCH(req: NextRequest) {
-  const { id, ...fields } = await req.json();
-  const { data, error } = await supabase
-    .from(TABLE)
-    .update(fields)
-    .eq('id', id)
-    .select();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data[0]);
+  try {
+    const { id, ...fields } = await req.json();
+    const data = await localStorage.updateStarsScore(id, fields);
+    if (!data) return NextResponse.json({ error: 'Score not found' }, { status: 404 });
+    return NextResponse.json(data);
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    return NextResponse.json({ 
+      error: err instanceof Error ? err.message : 'Unknown error',
+      details: 'PATCH /api/stars-scores failed'
+    }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {
-  const { id } = await req.json();
-  const { error } = await supabase
-    .from(TABLE)
-    .delete()
-    .eq('id', id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ success: true });
+  try {
+    const { id } = await req.json();
+    const success = await localStorage.deleteStarsScore(id);
+    if (!success) return NextResponse.json({ error: 'Score not found' }, { status: 404 });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error('Unexpected error:', err);
+    return NextResponse.json({ 
+      error: err instanceof Error ? err.message : 'Unknown error',
+      details: 'DELETE /api/stars-scores failed'
+    }, { status: 500 });
+  }
 } 

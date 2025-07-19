@@ -17,16 +17,17 @@ type TechScoreForm = {
   ammonia: number[];
   defectiveAcid: number[];
   defectiveAmmonia: number[];
-  mapProduced: number;
-  dapProduced: number;
-  correctDeliveries: number;
-  wrongDeliveries: number;
+  mapProduced: string;
+  dapProduced: string;
+  correctDeliveries: string;
+  wrongDeliveries: string;
 };
 
 type LeaderboardEntry = TechScoreForm & {
   id?: string;
   score: number | string;
   time: string;
+  createdAt: string;
 };
 
 const initialForm: TechScoreForm = {
@@ -43,11 +44,11 @@ const initialForm: TechScoreForm = {
   ammonia: [0, 0, 0, 0],
   defectiveAcid: [0, 0, 0, 0],
   defectiveAmmonia: [0, 0, 0, 0],
-  mapProduced: 0,
-  dapProduced: 0,
+  mapProduced: "0",
+  dapProduced: "0",
   // Obj 3
-  correctDeliveries: 0,
-  wrongDeliveries: 0,
+  correctDeliveries: "0",
+  wrongDeliveries: "0",
 };
 
 function calculateScore(form: TechScoreForm): number | string {
@@ -66,11 +67,11 @@ function calculateScore(form: TechScoreForm): number | string {
     score -= form.defectiveAcid[i] * 2;
     score -= form.defectiveAmmonia[i] * 2;
   }
-  score += form.mapProduced * 3;
-  score += form.dapProduced * 4;
+  score += Number(form.mapProduced) * 3;
+  score += Number(form.dapProduced) * 4;
   // Obj 3
-  score += form.correctDeliveries * 5;
-  score -= form.wrongDeliveries * 3;
+  score += Number(form.correctDeliveries) * 5;
+  score -= Number(form.wrongDeliveries) * 3;
   return score;
 }
 
@@ -122,15 +123,42 @@ export default function TechScoringPage() {
     };
   }, []);
 
+  function clamp(val: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, val));
+  }
+
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value, type, dataset } = e.target;
     if (name.startsWith("phosphateRocks") || name.startsWith("overLimit") || name.startsWith("sulfuricAcid") || name.startsWith("ammonia") || name.startsWith("defectiveAcid") || name.startsWith("defectiveAmmonia")) {
       const idx = Number(dataset.idx);
-      setForm(f => ({ ...f, [name]: (f[name as keyof TechScoreForm] as number[]).map((v, i) => i === idx ? Number(value) : v) }));
+      let v = Number(value);
+      // Constraints per field
+      if (name === "phosphateRocks") v = clamp(v, 0, 3);
+      if (name === "overLimit") v = clamp(v, 0, 7);
+      if (name === "sulfuricAcid" || name === "ammonia" || name === "defectiveAcid" || name === "defectiveAmmonia") v = clamp(v, 0, 2);
+      setForm(f => ({ ...f, [name]: (f[name as keyof TechScoreForm] as number[]).map((val, i) => i === idx ? v : val) }));
     } else if (type === "checkbox") {
       setForm(f => ({ ...f, [name]: (e.target as HTMLInputElement).checked }));
     } else {
-      setForm(f => ({ ...f, [name]: value }));
+      let v = value;
+      if (name === "mapProduced" || name === "dapProduced") v = String(clamp(Number(value), 0, 10)); // reasonable max
+      if (name === "correctDeliveries") {
+        let correct = clamp(Number(value), 0, 4);
+        let wrong = Number(form.wrongDeliveries);
+        if (correct === 4) wrong = 0;
+        else if (correct + wrong > 4) wrong = 4 - correct;
+        setForm(f => ({ ...f, correctDeliveries: String(correct), wrongDeliveries: String(wrong) }));
+        return;
+      }
+      if (name === "wrongDeliveries") {
+        let wrong = clamp(Number(value), 0, 4);
+        let correct = Number(form.correctDeliveries);
+        if (correct === 4) wrong = 0;
+        else if (correct + wrong > 4) correct = 4 - wrong;
+        setForm(f => ({ ...f, correctDeliveries: String(correct), wrongDeliveries: String(wrong) }));
+        return;
+      }
+      setForm(f => ({ ...f, [name]: v }));
     }
   }
 
@@ -143,9 +171,17 @@ export default function TechScoringPage() {
     });
     // Find the two most recent teams for this round
     const res = await fetch("/api/tech-scores");
-    const all = await res.json();
+    let all = await res.json();
+    // Defensive: if not an array, try .data or fallback to []
+    if (!Array.isArray(all)) {
+      if (Array.isArray(all.data)) {
+        all = all.data;
+      } else {
+        all = [];
+      }
+    }
     const recent = all.filter((entry: LeaderboardEntry) => entry.round === form.round)
-      .sort((a: LeaderboardEntry, b: LeaderboardEntry) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      .sort((a: LeaderboardEntry, b: LeaderboardEntry) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 2);
     setMatchTeams(recent);
     setShowSummary(true);
@@ -217,6 +253,16 @@ export default function TechScoringPage() {
   return (
     <div className="max-w-3xl mx-auto py-12 px-4 text-gray-900">
       <h1 className="text-3xl font-bold mb-6 text-orange-600 text-center">TECH League Scoring Form</h1>
+      {/* Clear description for the form */}
+      <div className="mb-6 p-4 bg-orange-50 border-l-4 border-orange-400 rounded">
+        <p className="mb-2 text-lg font-semibold">Instructions:</p>
+        <ul className="list-disc ml-6 text-base">
+          <li>This form is for scoring the TECH League challenge. Each team uses <b>4 containers</b> in the mixing zone, labeled below as Container 1–4.</li>
+          <li>For each container, enter the number of phosphate rocks, over-limit rocks, sulfuric acid, ammonia, and defective discs placed.</li>
+          <li>Use the checkboxes for special bonuses or penalties (e.g., Large Phosphate Rock, Robot Oversized).</li>
+          <li>All fields are required for accurate scoring. Hover over any field label for more info.</li>
+        </ul>
+      </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 mb-10">
         <div className="mb-4 flex flex-col md:flex-row gap-4">
           <input name="team" value={form.team} onChange={handleChange} placeholder="Team Name/Number" className="border p-2 rounded w-full md:w-1/2" required />
@@ -231,20 +277,21 @@ export default function TechScoringPage() {
 
         {/* Objective 1: Mining & Transport */}
         <h2 className="text-xl font-semibold mb-2 mt-6 text-orange-500">Objective 1: Mining & Transport of Phosphate Rocks <span className='text-sm text-gray-500'>(1 min)</span></h2>
-        <div className="mb-2 text-gray-700">Extract and transport phosphate rocks to containers in the mixing zone. Max 3 per container. Large rock bonus. Over limit penalty.</div>
+        <div className="mb-2 text-gray-700">Extract and transport phosphate rocks to containers in the mixing zone. <b>Each container represents a separate mixing zone (A, B, C, D)</b>. Max 3 rocks per container. Large rock bonus. Over limit penalty.</div>
         <label className="flex items-center gap-2 font-medium text-red-600 mb-4">
           <input type="checkbox" name="robotOversize" checked={form.robotOversize} onChange={handleChange} /> Robot Oversized (DQ)
         </label>
         <div className="mb-2 font-semibold">Phosphate Rocks in Containers (max 3 per):</div>
+        <div className="mb-1 text-sm text-gray-500">For each container (Zone A–D), enter the number of phosphate rocks placed (max 3). If more than 3, enter the extra in "Over Limit". <span title='What is "Over Limit"?'>[?]</span></div>
         {[0,1,2,3].map(i => (
           <div key={i} className="flex gap-2 items-center mb-2">
-            <span>Container {i+1}:</span>
-            <input type="number" name="phosphateRocks" data-idx={i} min={0} max={10} value={form.phosphateRocks[i]} onChange={handleChange} className="border p-1 rounded w-16" />
-            <span>Over Limit:</span>
-            <input type="number" name="overLimit" data-idx={i} min={0} max={10} value={form.overLimit[i]} onChange={handleChange} className="border p-1 rounded w-16" />
+            <span className="font-medium" title={`Mixing Zone ${String.fromCharCode(65+i)}`}>{`Container ${i+1} (Zone ${String.fromCharCode(65+i)})`}</span>:
+            <input type="number" name="phosphateRocks" data-idx={i} min={0} max={3} value={form.phosphateRocks[i]} onChange={handleChange} className="border p-1 rounded w-16" title="Number of phosphate rocks placed in this container (max 3)" />
+            <span title="Number of rocks over the 3-per-container limit">Over Limit:</span>
+            <input type="number" name="overLimit" data-idx={i} min={0} max={7} value={form.overLimit[i]} onChange={handleChange} className="border p-1 rounded w-16" title="Number of rocks above the 3-per-container limit (penalty)" />
           </div>
         ))}
-        <label className="flex items-center gap-2 mt-2">
+        <label className="flex items-center gap-2 mt-2" title="Bonus for placing a large phosphate rock">
           <input type="checkbox" name="largePhosphateRock" checked={form.largePhosphateRock} onChange={handleChange} /> Large Phosphate Rock Placed (+5)
         </label>
 
@@ -252,21 +299,24 @@ export default function TechScoringPage() {
         <h2 className="text-xl font-semibold mb-2 mt-6 text-blue-500">Objective 2: Chemical Processing & Fertilizer Formation <span className='text-sm text-gray-500'>(1 min)</span></h2>
         <div className="mb-2 text-gray-700">Add 2 sulfuric acids (S discs) and ammonia (A discs) to each container. Avoid defective discs. Produce MAP/DAP. Defective penalty.</div>
         <div className="mb-2 font-semibold">Sulfuric Acid, Ammonia, Defective Discs per Container:</div>
+        <div className="mb-1 text-sm text-gray-500">For each container, enter the number of <b>Sulfuric Acid (S)</b> and <b>Ammonia (A)</b> discs placed (max 2 each). Also enter any <b>Defective</b> discs (wrong color/label, max 2 each). <span title='What is a defective disc?'>[?]</span></div>
         {[0,1,2,3].map(i => (
           <div key={i} className="flex gap-2 items-center mb-2">
-            <span>Container {i+1}:</span>
-            <input type="number" name="sulfuricAcid" data-idx={i} min={0} max={10} value={form.sulfuricAcid[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="S" />
-            <input type="number" name="ammonia" data-idx={i} min={0} max={10} value={form.ammonia[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="A" />
-            <input type="number" name="defectiveAcid" data-idx={i} min={0} max={10} value={form.defectiveAcid[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="Def S" />
-            <input type="number" name="defectiveAmmonia" data-idx={i} min={0} max={10} value={form.defectiveAmmonia[i]} onChange={handleChange} className="border p-1 rounded w-16" placeholder="Def A" />
+            <span className="font-medium" title={`Mixing Zone ${String.fromCharCode(65+i)}`}>{`Container ${i+1} (Zone ${String.fromCharCode(65+i)})`}</span>:
+            <input type="number" name="sulfuricAcid" data-idx={i} min={0} max={2} value={form.sulfuricAcid[i]} onChange={handleChange} className="border p-1 rounded w-16" title="Number of sulfuric acid discs placed in this container (max 2)" />
+            <input type="number" name="ammonia" data-idx={i} min={0} max={2} value={form.ammonia[i]} onChange={handleChange} className="border p-1 rounded w-16" title="Number of ammonia discs placed in this container (max 2)" />
+            <input type="number" name="defectiveAcid" data-idx={i} min={0} max={2} value={form.defectiveAcid[i]} onChange={handleChange} className="border p-1 rounded w-16" title="Number of defective sulfuric acid discs in this container (max 2)" />
+            <input type="number" name="defectiveAmmonia" data-idx={i} min={0} max={2} value={form.defectiveAmmonia[i]} onChange={handleChange} className="border p-1 rounded w-16" title="Number of defective ammonia discs in this container (max 2)" />
           </div>
         ))}
         <div className="flex gap-4 mt-4">
-          <label className="flex flex-col">MAP Produced (+3 each)
-            <input type="number" name="mapProduced" min={0} value={form.mapProduced} onChange={handleChange} className="border p-1 rounded" />
+          <label className="flex flex-col" title="Number of MAP produced (bonus)">
+            MAP Produced (+3 each)
+            <input type="number" name="mapProduced" min={0} max={10} value={form.mapProduced} onChange={handleChange} className="border p-1 rounded" title="Number of MAP produced (bonus, min 0)" />
           </label>
-          <label className="flex flex-col">DAP Produced (+4 each)
-            <input type="number" name="dapProduced" min={0} value={form.dapProduced} onChange={handleChange} className="border p-1 rounded" />
+          <label className="flex flex-col" title="Number of DAP produced (bonus)">
+            DAP Produced (+4 each)
+            <input type="number" name="dapProduced" min={0} max={10} value={form.dapProduced} onChange={handleChange} className="border p-1 rounded" title="Number of DAP produced (bonus, min 0)" />
           </label>
         </div>
 
@@ -274,11 +324,12 @@ export default function TechScoringPage() {
         <h2 className="text-xl font-semibold mb-2 mt-6 text-green-600">Objective 3: Transport & Ship Fertilizer <span className='text-sm text-gray-500'>(30 sec)</span></h2>
         <div className="mb-2 text-gray-700">Move containers to correct shipping zone (MAP, DAP, Unfinished). Correct delivery bonus. Wrong area penalty.</div>
         <div className="mb-2 font-semibold">Shipping:</div>
-        <label className="flex flex-col mb-2">Correct Deliveries (+5 each)
-          <input type="number" name="correctDeliveries" min={0} value={form.correctDeliveries} onChange={handleChange} className="border p-1 rounded" />
+        <div className="mb-1 text-sm text-gray-500">Enter the number of containers delivered to the correct zone (max 4). If all 4 are correct, wrong deliveries must be 0. The sum of correct and wrong deliveries cannot exceed 4. <span title='What is a correct delivery?'>[?]</span></div>
+        <label className="flex flex-col mb-2" title="Number of containers delivered to the correct zone (bonus)">Correct Deliveries (+5 each)
+          <input type="number" name="correctDeliveries" min={0} max={4} value={form.correctDeliveries} onChange={handleChange} className="border p-1 rounded" />
         </label>
-        <label className="flex flex-col mb-2">Wrong Deliveries (−3 each)
-          <input type="number" name="wrongDeliveries" min={0} value={form.wrongDeliveries} onChange={handleChange} className="border p-1 rounded" />
+        <label className="flex flex-col mb-2" title="Number of containers delivered to the wrong zone (penalty)">Wrong Deliveries (−3 each)
+          <input type="number" name="wrongDeliveries" min={0} max={4} value={form.wrongDeliveries} onChange={handleChange} className="border p-1 rounded" />
         </label>
 
         <div className="mt-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -287,9 +338,9 @@ export default function TechScoringPage() {
         </div>
       </form>
       {/* Match Summary Modal */}
-      {showSummary && matchTeams.length === 2 && (
+      {showSummary && matchTeams.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-4xl w-full relative animate-pop">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-6xl w-full relative animate-pop">
             <button onClick={() => setShowSummary(false)} className="absolute top-4 right-4 text-2xl text-gray-400 hover:text-orange-500">&times;</button>
             
             {/* Round Header */}
@@ -300,7 +351,7 @@ export default function TechScoringPage() {
               </div>
             </div>
             
-            <div className="flex flex-col md:flex-row gap-8 items-center justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start justify-center">
               {matchTeams.map((team, idx) => {
                 const isWinner =
                   matchTeams.every(t => t.score !== 'Disqualified') &&
@@ -309,7 +360,7 @@ export default function TechScoringPage() {
                 return (
                   <div 
                     key={team.id || idx} 
-                    className={`flex-1 rounded-xl p-6 shadow-lg border-4 transition-all duration-1000 ${
+                    className={`rounded-xl p-6 shadow-lg border-4 transition-all duration-1000 ${
                       isWinner 
                         ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-yellow-100 animate-winner-glow' 
                         : 'border-gray-200 bg-gray-50'
@@ -332,12 +383,14 @@ export default function TechScoringPage() {
                     </div>
                     <div className="mb-2 text-sm text-gray-500">Submitted by: {team.submitted_by}</div>
                     <div className="mt-2 text-sm">
-                      <div className="font-bold text-orange-500 mb-1">Objective 1</div>
-                      <div>Phosphate Rocks: {team.phosphateRocks.join(', ')} | Large Rock: {team.largePhosphateRock ? 'Yes' : 'No'} | Over Limit: {team.overLimit.join(', ')}</div>
-                      <div className="font-bold text-orange-500 mt-2 mb-1">Objective 2</div>
-                      <div>Sulfuric Acid: {team.sulfuricAcid.join(', ')} | Ammonia: {team.ammonia.join(', ')} | Defective Acid: {team.defectiveAcid.join(', ')} | Defective Ammonia: {team.defectiveAmmonia.join(', ')}</div>
-                      <div>MAP: {team.mapProduced} | DAP: {team.dapProduced}</div>
-                      <div className="font-bold text-orange-500 mt-2 mb-1">Objective 3</div>
+                      <div className="font-bold text-orange-500 mb-1">Objective 1 - Mining</div>
+                      <div>Phosphate Rocks: [{team.phosphateRocks.join(', ')}] | Over Limit: [{team.overLimit.join(', ')}]</div>
+                      <div>Large Rock: {team.largePhosphateRock ? 'Yes' : 'No'} | Robot Oversized: {team.robotOversize ? 'Yes' : 'No'}</div>
+                      <div className="font-bold text-blue-500 mt-2 mb-1">Objective 2 - Chemical Processing</div>
+                      <div>Sulfuric Acid: [{team.sulfuricAcid.join(', ')}] | Ammonia: [{team.ammonia.join(', ')}]</div>
+                      <div>Defective Acid: [{team.defectiveAcid.join(', ')}] | Defective Ammonia: [{team.defectiveAmmonia.join(', ')}]</div>
+                      <div>MAP Produced: {team.mapProduced} | DAP Produced: {team.dapProduced}</div>
+                      <div className="font-bold text-green-600 mt-2 mb-1">Objective 3 - Shipping</div>
                       <div>Correct Deliveries: {team.correctDeliveries} | Wrong Deliveries: {team.wrongDeliveries}</div>
                     </div>
                   </div>
@@ -449,9 +502,9 @@ export default function TechScoringPage() {
               {[0,1,2,3].map(i => (
                 <div key={i} className="flex gap-2 items-center mb-2">
                   <span>Container {i+1}:</span>
-                  <input type="number" name="phosphateRocks" data-idx={i} min={0} max={10} value={editForm.phosphateRocks[i]} onChange={handleEditChange} className="border p-1 rounded w-16" />
+                  <input type="number" name="phosphateRocks" data-idx={i} min={0} max={3} value={editForm.phosphateRocks[i]} onChange={handleEditChange} className="border p-1 rounded w-16" />
                   <span>Over Limit:</span>
-                  <input type="number" name="overLimit" data-idx={i} min={0} max={10} value={editForm.overLimit[i]} onChange={handleEditChange} className="border p-1 rounded w-16" />
+                  <input type="number" name="overLimit" data-idx={i} min={0} max={7} value={editForm.overLimit[i]} onChange={handleEditChange} className="border p-1 rounded w-16" />
                 </div>
               ))}
               <label className="flex items-center gap-2 mt-2">
@@ -462,27 +515,27 @@ export default function TechScoringPage() {
               {[0,1,2,3].map(i => (
                 <div key={i} className="flex gap-2 items-center mb-2">
                   <span>Container {i+1}:</span>
-                  <input type="number" name="sulfuricAcid" data-idx={i} min={0} max={10} value={editForm.sulfuricAcid[i]} onChange={handleEditChange} className="border p-1 rounded w-16" placeholder="S" />
-                  <input type="number" name="ammonia" data-idx={i} min={0} max={10} value={editForm.ammonia[i]} onChange={handleEditChange} className="border p-1 rounded w-16" placeholder="A" />
-                  <input type="number" name="defectiveAcid" data-idx={i} min={0} max={10} value={editForm.defectiveAcid[i]} onChange={handleEditChange} className="border p-1 rounded w-16" placeholder="Def S" />
-                  <input type="number" name="defectiveAmmonia" data-idx={i} min={0} max={10} value={editForm.defectiveAmmonia[i]} onChange={handleEditChange} className="border p-1 rounded w-16" placeholder="Def A" />
+                  <input type="number" name="sulfuricAcid" data-idx={i} min={0} max={2} value={editForm.sulfuricAcid[i]} onChange={handleEditChange} className="border p-1 rounded w-16" placeholder="S" />
+                  <input type="number" name="ammonia" data-idx={i} min={0} max={2} value={editForm.ammonia[i]} onChange={handleEditChange} className="border p-1 rounded w-16" placeholder="A" />
+                  <input type="number" name="defectiveAcid" data-idx={i} min={0} max={2} value={editForm.defectiveAcid[i]} onChange={handleEditChange} className="border p-1 rounded w-16" placeholder="Def S" />
+                  <input type="number" name="defectiveAmmonia" data-idx={i} min={0} max={2} value={editForm.defectiveAmmonia[i]} onChange={handleEditChange} className="border p-1 rounded w-16" placeholder="Def A" />
                 </div>
               ))}
               <div className="flex gap-4 mt-4">
                 <label className="flex flex-col">MAP Produced (+3 each)
-                  <input type="number" name="mapProduced" min={0} value={editForm.mapProduced} onChange={handleEditChange} className="border p-1 rounded" />
+                  <input type="number" name="mapProduced" min={0} max={10} value={editForm.mapProduced} onChange={handleEditChange} className="border p-1 rounded" />
                 </label>
                 <label className="flex flex-col">DAP Produced (+4 each)
-                  <input type="number" name="dapProduced" min={0} value={editForm.dapProduced} onChange={handleEditChange} className="border p-1 rounded" />
+                  <input type="number" name="dapProduced" min={0} max={10} value={editForm.dapProduced} onChange={handleEditChange} className="border p-1 rounded" />
                 </label>
               </div>
               {/* Objective 3 */}
               <div className="mb-2 font-semibold mt-4">Shipping:</div>
               <label className="flex flex-col mb-2">Correct Deliveries (+5 each)
-                <input type="number" name="correctDeliveries" min={0} value={editForm.correctDeliveries} onChange={handleEditChange} className="border p-1 rounded" />
+                <input type="number" name="correctDeliveries" min={0} max={4} value={editForm.correctDeliveries} onChange={handleEditChange} className="border p-1 rounded" />
               </label>
               <label className="flex flex-col mb-2">Wrong Deliveries (−3 each)
-                <input type="number" name="wrongDeliveries" min={0} value={editForm.wrongDeliveries} onChange={handleEditChange} className="border p-1 rounded" />
+                <input type="number" name="wrongDeliveries" min={0} max={4} value={editForm.wrongDeliveries} onChange={handleEditChange} className="border p-1 rounded" />
               </label>
               <div className="mt-6 flex gap-4 justify-end">
                 <button type="button" onClick={closeEdit} className="px-6 py-2 bg-gray-300 text-gray-700 rounded font-bold">Cancel</button>
